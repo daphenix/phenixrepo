@@ -7,16 +7,28 @@ function casino:Print (msg)
 	print (m)
 end
 
+function casino:SendMessage (playerName, msg)
+	--SendChat (msg, "PRIVATE", playerName)
+	print (msg)
+end
+
+function casino:Log (msg)
+	local m = string.format ("\12700ff00%s\127o", msg)
+	print (m)
+end
+
+-- Thread management
 function casino:RunPlayerProcesses ()
 	while (casino.data.tablesOpen) do
+		-- Run any open tables
 		local p
 		for _, p in pairs (casino.data.tables) do
-			if p and p.isDone then
-				print (string.format ("Removing Spent Process for player %s", p.player))
-				p = nil
+			if p.isDone then
+				casino:Log (string.format ("Removing Spent Process for player %s", p.player))
+				casino.data.tables [p.player] = nil
 			else
-				casino:Yield ()
-				p.controller.ProcessRequest (p)
+				p.controller:ProcessRequest (p.request)
+				p.request = nil
 			end
 		end
 		casino:Yield ()
@@ -30,7 +42,8 @@ function casino:RunHouseThread ()
 			if coroutine.status (casino.data.houseThread):lower () ~= "dead" then
 				casino:RunHouseThread ()
 			else
-				casino:Print ("All Tables Closed")
+				casino:Print ("Casino is Closed")
+				casino.data:SaveAccountInfo ()
 			end
 		end)
 	end
