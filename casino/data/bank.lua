@@ -1,7 +1,7 @@
 casino.bank = {}
 casino.bank.trustAccount = {}
 
-function casino.bank:OpenAccount (playerName, amt)
+function casino.bank:OpenAccount (playerName, amt, makeAnnouncement)
 	if amt and amt > 0 then
 		local acct = {
 			player = playerName,
@@ -11,8 +11,7 @@ function casino.bank:OpenAccount (playerName, amt)
 		}
 
 		function acct:SendMessage (msg)
-			--SendChat (msg, "PRIVATE", acct.player)
-			print (msg)
+			table.insert (casino.data.messageQueue, casino:Message (acct.player, msg))
 		end
 		
 		function acct:IsPlayerInSector ()
@@ -50,20 +49,24 @@ function casino.bank:OpenAccount (playerName, amt)
 					acct:SendMessage ("You cannot withdraw more credits than you have on account!")
 				end
 			else
-				casino:SendMessage ()
+				acct:SendMessage ("You must be present in the casino sector to make a withdraw")
 			end
 		end
 		
 		function acct:Deposit (amt)
 			if amt > 0 then
 				acct.balance = acct.balance + amt
-				acct:SendMessage (string.format ("%d Deposited", amt))
+				acct:SendMessage (string.format ("%dc Deposited", amt))
 			end
 		end
 		
 		casino.bank.trustAccount [playerName] = acct
-		acct:SendMessage (string.format ("Account Created with initial balance of %d", amt))
+		if makeAnnouncement then
+			acct:SendMessage (string.format ("Account Created with initial balance of %dc", amt))
+		end
 		casino:Log ("Account created for " .. playerName)
+		
+		return acct
 	end
 end
 

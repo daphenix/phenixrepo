@@ -6,7 +6,10 @@ function casino.games.Slots (game)
 	local slots = casino.games:BaseController  (game)
 	slots.canPlay = true
 	
+	-- Game Data
 	math.random (1, 100)
+	local payout2OfAKind = 5
+	local payout3OfAKind =19
 	local probabilities = {
 		assigned = {5, 8, 10, 14, 15, 14, 12, 10, 7, 5},
 		assumed = {}
@@ -50,9 +53,13 @@ function casino.games.Slots (game)
 		end
 	end
 	
+	function slots:Help ()
+		slots:SendMessage ("Just send !casino play to play.  Your bet of 1c is automatically deducted from your account")
+	end
+	
 	function slots:Play (req)
-		slots:SendMessage ("Ching! Ching! Ching!")
-		game.acct:MakeBet (1)
+		slots:SendMessage ("Spin! Spin! Spin!")
+		game.acct:MakeBet (1, false)
 		local result = "|"
 		local j
 		for j=1, 3 do
@@ -60,9 +67,9 @@ function casino.games.Slots (game)
 		end
 		slots:SendMessage (string.format ("Result: %s", result))
 		if slots:CheckThreeOfAKind (result) then
-			slots:Win (5)
+			slots:Win (payout3OfAKind)
 		elseif slots:CheckTwoOfAKind (result) then
-			slots:Win (2)
+			slots:Win (payout2OfAKind)
 		else
 			slots:Lose ()
 		end
