@@ -5,7 +5,7 @@
 casino.games = {}
 
 -- All games installable
-dofile ("games/dummy.lua")
+dofile ("games/front_desk.lua")
 dofile ("games/slots.lua")
 
 casino.games.gamesList = {
@@ -16,7 +16,10 @@ casino.games.gamesList = {
 function casino.games:BaseController (game)
 	local base = {
 		-- Set this to true when all preconditions for play have been satisfied
-		canPlay = false
+		canPlay = false,
+		
+		-- Change this statement to what will be returned to the user when starting up
+		startup = "Your are now playing " .. game.name
 	}
 	
 	--[[*************************************************
@@ -25,14 +28,14 @@ function casino.games:BaseController (game)
 	]]
 	
 	-- How to play this game
-	function base:Help () end
-	
-	-- Primary Play function
-	function base:Play (req) end
+	function base:Help (req) end
 	
 	-- Used for any additional processing that is needed but in default key set
 	-- e.g. raise or see in Poker
 	function base:ParseKey (key, args) end
+	
+	-- Primary Play function
+	function base:Play (req) end
 	
 	--[[
 		End Override Section
@@ -64,11 +67,14 @@ function casino.games:BaseController (game)
 			elseif key == "help" then
 				base:Help ()
 				
-			elseif key == "bet" and not base.canPlay then
-				base.canPlay = game.acct:MakeBet (tonumber (args), true)
-				
 			elseif key == "quit" then
 				game.isDone = true
+				
+			elseif key ~= "play" then
+				base:ParseKey (key, args)
+				
+			elseif key == "bet" and not base.canPlay then
+				base.canPlay = game.acct:MakeBet (tonumber (args), true)
 				
 			elseif key == "play" then
 				if base.canPlay then
@@ -76,8 +82,6 @@ function casino.games:BaseController (game)
 				else
 					base:SendMessage ("You must bet before you can play")
 				end
-			else
-				base:ParseKey (key, args)
 			end
 		end
 	end
@@ -99,7 +103,7 @@ function casino.games:CreateGame (gameName, playerName)
 		game.controller = controller (game)
 		
 		-- Send Response to player
-		game.controller:SendMessage ("You are now playing " .. gameName)
+		game.controller:SendMessage (game.controller.startup)
 		casino.data.numPlayers = casino.data.numPlayers + 1
 		
 		return game

@@ -29,11 +29,13 @@ function casino:Help ()
 	purchaseprint ("\tstatus - Displays all bank account, open game, and wait list information, plus the house thread status")
 	purchaseprint ("\thelp - Prints this list")
 	purchaseprint ("\tbackup - Backs up all bank account information")
-	purchaseprint ("\tstart - Starts up the Casino")
+	purchaseprint ("\tstart [true/false] - Starts up the Casino (if passing true/false determines debug mode)")
 	purchaseprint ("\tstop - Shuts down the Casino")
 end
 
-function casino:OpenTables ()
+local debugMode = false
+function casino:OpenTables (args)
+	debugMode = (args [2] == "true")
 	math.randomseed (os.time ())
 	math.random ()
 	casino:Print ("Casino is Open")
@@ -43,8 +45,11 @@ function casino:OpenTables ()
 	end
 	
 	-- Start plotter thread
-	RegisterEvent (casino.data, "CHAT_MSG_PRIVATE")
-	--RegisterEvent (casino.data, "CHAT_MSG_GROUP")
+	if debugMode then
+		RegisterEvent (casino.data, "CHAT_MSG_GROUP")
+	else
+		RegisterEvent (casino.data, "CHAT_MSG_PRIVATE")
+	end
 	RegisterEvent (casino.data, "CHAT_MSG_SECTORD")
 	casino.data.tablesOpen = true
 	if coroutine.status (casino.data.houseThread) == "suspended" then
@@ -62,8 +67,12 @@ function casino:CloseTables ()
 	SendChat ("The Casino is Closed!", "GUILD", nil)
 	
 	UnregisterEvent (casino.data, "CHAT_MSG_SECTORD")
-	UnregisterEvent (casino.data, "CHAT_MSG_PRIVATE")
-	--UnregisterEvent (casino.data, "CHAT_MSG_GROUP")
+	if debugMode then
+		UnregisterEvent (casino.data, "CHAT_MSG_GROUP")
+	else
+		UnregisterEvent (casino.data, "CHAT_MSG_PRIVATE")
+	end
+	debugMode = false
 	casino.data.tablesOpen = false
 end
 

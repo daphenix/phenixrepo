@@ -94,13 +94,12 @@ end
 									He will receive his balance
 ]]
 function casino.data:OnEvent (event, data)
-	if event == "CHAT_MSG_PRIVATE" then
-	--if event == "CHAT_MSG_GROUP" then
+	if event == "CHAT_MSG_PRIVATE" or event == "CHAT_MSG_GROUP" then
 		local key, args = string.match (data.msg:lower (), "^!(%w+)%s*(.*)$")
 		local vars
 		if key == "casino" and args then
 			key, vars = string.match (args, "^(%w+)%s*(%w*)$")
-			if key == "help" then
+			if key == "help" and not casino.data.tables [data.name] then
 				casino:ChatHelp (data.name)
 			
 			elseif key == "balance" and casino.bank.trustAccount [data.name] then

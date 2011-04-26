@@ -7,11 +7,17 @@
 function casino.games.FrontDesk (game)
 	local frontdesk = casino.games:BaseController  (game)
 	frontdesk.canPlay = true
-	local replyNumber = 1
+	frontdesk.startup = "This is the Front Desk.  How may I help you?"
+	local replyNumber = 0
 	
-	function frontdesk:Play (req)
+	function frontdesk:Help ()
+		frontdesk:ParseKey ()
+	end
+	
+	function frontdesk:ParseKey (key, args)
+		replyNumber = replyNumber + 1
 		if replyNumber < 3 then
-			frontdesk:SendMessage ("Basic Game Commands: play, bet, or quit")
+			frontdesk:SendMessage ("Available games are: Slots")
 		else
 			local response = math.random (1, 4)
 			if response == 1 then
@@ -24,6 +30,10 @@ function casino.games.FrontDesk (game)
 				frontdesk:SendMessage ("Just go away already!")
 			end
 		end
+	end
+	
+	function frontdesk:Play (req)
+		frontdesk:ParseKey ("", req)
 	end
 	
 	return frontdesk

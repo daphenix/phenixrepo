@@ -5,6 +5,7 @@
 function casino.games.Slots (game)
 	local slots = casino.games:BaseController  (game)
 	slots.canPlay = true
+	slots.startu = "Welcome to Slots!  The price for play is 1c which is automatically deducted from your account.  Have fun!"
 	
 	-- Game Data
 	math.random (1, 100)
@@ -53,7 +54,7 @@ function casino.games.Slots (game)
 		end
 	end
 	
-	function slots:Help ()
+	function slots:Help (req)
 		slots:SendMessage ("Just send !casino play to play.  Your bet of 1c is automatically deducted from your account")
 	end
 	
