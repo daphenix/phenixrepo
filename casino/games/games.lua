@@ -49,6 +49,7 @@ function casino.games:BaseController (game)
 	function base:Win (amt)
 		base:SendMessage (string.format ("You Win %dc!", (game.acct.currentBet + amt)))
 		game.acct:Deposit (game.acct.currentBet + amt)
+		game.acct.currentBet = 0
 	end
 	
 	function base:Lose ()
@@ -67,7 +68,7 @@ function casino.games:BaseController (game)
 			elseif key == "help" then
 				base:Help ()
 				
-			elseif key == "quit" then
+			elseif key == "quit" or key == "leave" then
 				game.isDone = true
 				
 			elseif key ~= "play" then

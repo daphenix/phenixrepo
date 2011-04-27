@@ -30,9 +30,9 @@ function casino.data:LoadAccountInfo ()
 	local acct, set
 	for _, set in pairs (temp) do
 		-- Add back in each account and set up properties
-		acct = casino.bank:OpenAccount (set.player, set.balance, false)
+		acct = casino.bank:OpenAccount (set.player, set.balance + set.currentBet, false)
 		acct.creditLine = set.creditLine
-		acct.currentBet = set.currentBet
+		acct.currentBet = 0
 	end
 end
 

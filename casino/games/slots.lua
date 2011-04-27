@@ -5,12 +5,13 @@
 function casino.games.Slots (game)
 	local slots = casino.games:BaseController  (game)
 	slots.canPlay = true
-	slots.startu = "Welcome to Slots!  The price for play is 1c which is automatically deducted from your account.  Have fun!"
 	
 	-- Game Data
+	-- Set up payout data as bet + payout.  So if the automatic bet is 5c and you want a payout of 25c, the payout setting should be 20
 	math.random (1, 100)
-	local payout2OfAKind = 5
-	local payout3OfAKind =19
+	local slotBet = 5
+	local payout2OfAKind = 20
+	local payout3OfAKind =95
 	local probabilities = {
 		assigned = {5, 8, 10, 14, 15, 14, 12, 10, 7, 5},
 		assumed = {}
@@ -22,6 +23,7 @@ function casino.games.Slots (game)
 			probabilities.assumed [k] = probabilities.assumed [k] + probabilities.assigned [j]
 		end
 	end
+	slots.startup = string.format ("Welcome to Slots!  The price for play is %dc which is automatically deducted from your account.  Have fun!", slotBet)
 	
 	function slots:GetSlotSymbol (distribution)
 		local index = math.random (1, 100)
@@ -55,12 +57,12 @@ function casino.games.Slots (game)
 	end
 	
 	function slots:Help (req)
-		slots:SendMessage ("Just send !casino play to play.  Your bet of 1c is automatically deducted from your account")
+		slots:SendMessage (string.format ("Just send !casino play to play.  Your bet of %dc is automatically deducted from your account", slotBet))
 	end
 	
 	function slots:Play (req)
 		slots:SendMessage ("Spin! Spin! Spin!")
-		game.acct:MakeBet (1, false)
+		game.acct:MakeBet (slotBet, false)
 		local result = "|"
 		local j
 		for j=1, 3 do
