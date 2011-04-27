@@ -9,7 +9,7 @@
 ]]
 
 declare ("casino", {})
-casino.version = "0.1"
+casino.version = "0.5"
 dofile ("data/data.lua")
 dofile ("games/games.lua")
 dofile ("util.lua")
@@ -26,6 +26,7 @@ function casino:Help ()
 	purchaseprint ("\tbank - Displays all existing bank accounts")
 	purchaseprint ("\tgames - Displays all currently running games")
 	purchaseprint ("\treservations - Displays all players on the waiting list")
+	purchaseprint ("\tstats - Displays win/loss record for all games and money bet vs paidout by bank")
 	purchaseprint ("\tstatus - Displays all bank account, open game, and wait list information, plus the house thread status")
 	purchaseprint ("\thelp - Prints this list")
 	purchaseprint ("\tbackup - Backs up all bank account information")
@@ -57,6 +58,11 @@ function casino:OpenTables (args)
 		casino:RunMessageQueue ()
 		casino:RunBackup ()
 		
+		casino.data.wins = 0
+		casino.data.losses = 0
+		casino.data.totalBet = 0
+		casino.data.totalPaidout = 0
+		
 		-- Make announcement that the casino is open.  Give casino sector
 		SendChat ("The Casino is Open!", "GUILD", nil)
 	end
@@ -84,6 +90,7 @@ casino.arguments = {
 	bank = casino.DisplayAccounts,
 	games = casino.DisplayGames,
 	reservations = casino.DisplayWaitQueue,
+	stats = casino.DisplayGameStats,
 	status = casino.Status,
 	help = casino.Help,
 	backup = casino.data.SaveAccountInfo,

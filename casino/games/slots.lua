@@ -12,17 +12,31 @@ function casino.games.Slots (game)
 	local slotBet = 5
 	local payout2OfAKind = 20
 	local payout3OfAKind =95
-	local probabilities = {
-		assigned = {5, 8, 10, 14, 15, 14, 12, 10, 7, 5},
+	local probabilities1 = {
+		assigned = {10, 10, 9, 11, 11, 9, 11, 9, 10, 10},
 		assumed = {}
 	}
-	local j, k
-	for k=1, 10 do
-		probabilities.assumed [k] = 0
-		for j=1, k-1 do
-			probabilities.assumed [k] = probabilities.assumed [k] + probabilities.assigned [j]
+	local probabilities2 = {
+		assigned = {11, 11, 10, 9, 9, 10, 9, 10, 11, 10},
+		assumed = {}
+	}
+	local probabilities3 = {
+		assigned = {10, 9, 10, 10, 9, 11, 10, 11, 9, 11},
+		assumed = {}
+	}
+	
+	function slots:BuildProbabilities (stats)
+		local j, k
+		for k=1, 10 do
+			stats.assumed [k] = 0
+			for j=1, k-1 do
+				stats.assumed [k] = stats.assumed [k] + stats.assigned [j]
+			end
 		end
 	end
+	slots:BuildProbabilities (probabilities1)
+	slots:BuildProbabilities (probabilities2)
+	slots:BuildProbabilities (probabilities3)
 	slots.startup = string.format ("Welcome to Slots!  The price for play is %dc which is automatically deducted from your account.  Have fun!", slotBet)
 	
 	function slots:GetSlotSymbol (distribution)
@@ -64,10 +78,16 @@ function casino.games.Slots (game)
 		slots:SendMessage ("Spin! Spin! Spin!")
 		game.acct:MakeBet (slotBet, false)
 		local result = "|"
-		local j
-		for j=1, 3 do
-			result = result .. tostring (slots:GetSlotSymbol (probabilities.assumed)) .. "|"
-		end
+		
+		-- Cylinder 1
+		result = result .. tostring (slots:GetSlotSymbol (probabilities1.assumed)) .. "|"
+		
+		-- Cylinder 2
+		result = result .. tostring (slots:GetSlotSymbol (probabilities2.assumed)) .. "|"
+		
+		-- Cylinder 3
+		result = result .. tostring (slots:GetSlotSymbol (probabilities3.assumed)) .. "|"
+		
 		slots:SendMessage (string.format ("Result: %s", result))
 		if slots:CheckThreeOfAKind (result) then
 			slots:Win (payout3OfAKind)

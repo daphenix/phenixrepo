@@ -16,6 +16,10 @@ casino.data.maxPlayers = 25
 casino.data.tables = {}
 casino.data.messageQueue = {}
 casino.data.waitQueue = {}
+casino.data.wins = 0
+casino.data.losses = 0
+casino.data.totalBet = 0
+casino.data.totalPaidout = 0
 
 -- Data Handling
 function casino.data:LoadUserSettings ()

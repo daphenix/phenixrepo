@@ -28,6 +28,7 @@ function casino.bank:OpenAccount (playerName, amt, makeAnnouncement)
 			if amt > 0 and amt <= acct.balance + acct.creditLine then
 				acct.currentBet = amt
 				acct.balance = acct.balance - amt
+				casino.data.totalBet = casino.data.totalBet + amt
 				if showMessages then acct:SendMessage (string.format ("Your bet of %dc has been registered", amt)) end
 				return true
 			else

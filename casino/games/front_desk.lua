@@ -36,10 +36,12 @@ function casino.games.FrontDesk (game)
 		-- If using the "play" keyword, check existing games and swap out if possible
 		if casino.games.gamesList [req:lower ()] then
 			Timer ():SetTimeout (2*casino.data.delay, function ()
-				local playerName = frontdesk.player
+				local playerName = game.player
 				local gameName = req:lower ()
+				print (string.format ("Player: %s\tGame: %s", tostring (playerName), tostring (gameName)))
 				casino.data.tables [playerName] = nil
-				casino.games:CreateGame (gameName, playerName)
+				casino.data.numPlayers = casino.data.numPlayers - 1
+				casino.data.tables [playerName] = casino.games:CreateGame (gameName, playerName)
 			end)
 		else
 			frontdesk:ParseKey ("play", req)

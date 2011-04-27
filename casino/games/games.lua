@@ -50,11 +50,14 @@ function casino.games:BaseController (game)
 		base:SendMessage (string.format ("You Win %dc!", (game.acct.currentBet + amt)))
 		game.acct:Deposit (game.acct.currentBet + amt)
 		game.acct.currentBet = 0
+		casino.data.wins = casino.data.wins + 1
+		casino.data.totalPaidout = casino.data.totalPaidout + game.acct.currentBet + amt
 	end
 	
 	function base:Lose ()
 		base:SendMessage ("You Lose.  Better Luck Next Time")
 		game.acct.currentBet = 0
+		casino.data.losses = casino.data.losses + 1
 	end
 	
 	function base:ProcessRequest (req)
@@ -92,7 +95,7 @@ end
 
 function casino.games:CreateGame (gameName, playerName)
 	if gameName:len () > 0 then
-		casino:Log ("Creating game " .. tostring (gameName) .. " for player " .. playerName)
+		casino:Log ("Attempting to create game " .. tostring (gameName) .. " for player " .. playerName)
 		local game = {
 			name = gameName,
 			player = playerName,
