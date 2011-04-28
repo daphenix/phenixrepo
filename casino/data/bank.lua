@@ -42,7 +42,7 @@ function casino.bank:OpenAccount (playerName, amt, makeAnnouncement)
 			if acct:IsPlayerInSector () then
 				if amt >= 0 and amt <= acct.balance then
 					acct.balance = acct.balance - amt
-					--GiveMoney (acct.player, amt)
+					GiveMoney (acct.player, amt)
 					acct:SendMessage (string.format ("%d Withdrawn", amt))
 				elseif amt < 0 then
 					acct:SendMessage ("You cannot withdraw a negative amount")
@@ -76,7 +76,7 @@ function casino.bank:CloseAccount (playerName)
 	if casino.bank.trustAccount [playerName]  then
 		if casino.bank.trustAccount [playerName]:IsPlayerInSector () then
 			-- Send remaining money in trust account to player if in sector, clear trust account
-			--GiveMoney (playerName, casino.bank.trustAccount [playerName].balance)
+			GiveMoney (playerName, casino.bank.trustAccount [playerName].balance)
 			casino.bank.trustAccount [playerName] = nil
 		else
 		end
