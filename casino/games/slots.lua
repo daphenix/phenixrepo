@@ -10,21 +10,21 @@ function casino.games.Slots (game)
 	-- Set up payout data as bet + payout.  So if the automatic bet is 5c and you want a payout of 25c, the payout setting should be 20
 	math.random (1, 100)
 	local slotBet = 5
-	local payout2OfAKind = 20
+	local payout2OfAKind = 15
 	local payout3OfAKind =95
 	local cylinders = {
 		{
-			assigned = {7, 8, 10, 8, 7, 8, 7, 8, 8, 8, 7, 7, 7},
+			assigned = {7, 7, 13, 7, 7, 6, 7, 6, 7, 13, 6, 7, 7}, -- Ca, Ap
 			assumed = {},
 			symbols = {"Aq", "Si", "Ca", "Fe", "Va", "Is", "Xi", "La", "Py", "Ap", "De", "Pe", "He"}
 		},
 		{
-			assigned = {7, 8, 7, 8, 7, 10, 8, 8, 7, 8, 7, 8, 7},
+			assigned = {7, 7, 6, 7, 6, 13, 7, 6, 7, 13, 7, 7, 7}, -- Aq, Pe
 			assumed = {},
 			symbols = {"La", "Py", "Va", "Is", "Xi", "Aq", "Si", "Ca", "Fe", "Pe", "He", "Ap", "De"}
 		},
 		{
-			assigned = {7, 8, 7, 7, 8, 8, 7, 10, 8, 8, 7, 8, 7},
+			assigned = {7, 6, 7, 6, 13, 7, 7, 13, 7, 6, 7, 7, 7}, -- Fe, Xi
 			assumed = {},
 			symbols = {"Si", "Py", "Ap", "Ca", "Fe", "Va", "Aq", "Xi", "La", "Pe", "He", "Is", "De"}
 		}
