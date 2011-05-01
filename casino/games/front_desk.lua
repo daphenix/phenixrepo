@@ -7,7 +7,6 @@
 function casino.games.FrontDesk (game)
 	local frontdesk = casino.games:BaseController  (game)
 	frontdesk.canPlay = true
-	frontdesk.startup = "This is the Front Desk.  How may I help you?"
 	local replyNumber = 0
 	
 	-- Random Responses
@@ -17,6 +16,18 @@ function casino.games.FrontDesk (game)
 		"Security!!",
 		"Just go away already!"
 	}
+	
+	-- Clerk Names
+	local clerks = {
+		"Melanie",
+		"Stacy",
+		"Shonna",
+		"Aster",
+		"Helen",
+		"Joanna",
+		"Kylie"
+	}
+	frontdesk.startup = "This is the Front Desk.  How may I help you?"
 	
 	function frontdesk:Help ()
 		frontdesk:ParseKey ()

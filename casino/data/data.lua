@@ -148,9 +148,7 @@ function casino.data:OnEvent (event, data)
 	elseif event == "CHAT_MSG_SECTORD" then
 		-- this is used for determining if a player is sending money for an account
 		-- Form:  <playerName> sent you <amount> credits
-		print (data)
-		print (data.msg)
-		local playerName, amount = string.match (data.msg, "^(.+) sent you (%d+) credits$")
+		local playerName, amount = string.match (data.msg, "(.+) sent you (%d+) credits")
 		if playerName then
 			if not casino.bank.trustAccount [playerName] then
 				casino.bank:OpenAccount (playerName, tonumber (amount), true)

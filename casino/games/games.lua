@@ -49,9 +49,9 @@ function casino.games:BaseController (game)
 	function base:Win (amt)
 		base:SendMessage (string.format ("You Win %dc!", (game.acct.currentBet + amt)))
 		game.acct:Deposit (game.acct.currentBet + amt)
-		game.acct.currentBet = 0
 		casino.data.wins = casino.data.wins + 1
 		casino.data.totalPaidout = casino.data.totalPaidout + game.acct.currentBet + amt
+		game.acct.currentBet = 0
 	end
 	
 	function base:Lose ()

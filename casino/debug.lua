@@ -75,3 +75,8 @@ function casino:Status ()
 	casino:DisplayWaitQueue ()
 	casino:DisplayGameStats ()
 end
+
+function casino:Reset ()
+	math.randomseed (os.time ())
+	math.random ()
+end

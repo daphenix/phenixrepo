@@ -28,6 +28,7 @@ function casino:Help ()
 	purchaseprint ("\treservations - Displays all players on the waiting list")
 	purchaseprint ("\tstats - Displays win/loss record for all games and money bet vs paidout by bank")
 	purchaseprint ("\tstatus - Displays all bank account, open game, and wait list information, plus the house thread status")
+	purchaseprint ("\treset - Resets the randomization of the casino")
 	purchaseprint ("\thelp - Prints this list")
 	purchaseprint ("\tbackup - Backs up all bank account information")
 	purchaseprint ("\tstart [true/false] - Starts up the Casino (if passing true/false determines debug mode)")
@@ -37,8 +38,7 @@ end
 local debugMode = false
 function casino:OpenTables (args)
 	debugMode = (args [2] == "true")
-	math.randomseed (os.time ())
-	math.random ()
+	casino:Reset ()
 	casino:Print ("Casino is Open")
 	if not casino.data.houseThread or coroutine.status (casino.data.houseThread) == "dead" then
 		-- Create house thread
@@ -92,6 +92,7 @@ casino.arguments = {
 	reservations = casino.DisplayWaitQueue,
 	stats = casino.DisplayGameStats,
 	status = casino.Status,
+	reset = casino.Reset,
 	help = casino.Help,
 	backup = casino.data.SaveAccountInfo,
 	start = casino.OpenTables,

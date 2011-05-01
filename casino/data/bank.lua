@@ -78,7 +78,9 @@ function casino.bank:CloseAccount (playerName)
 			-- Send remaining money in trust account to player if in sector, clear trust account
 			GiveMoney (playerName, casino.bank.trustAccount [playerName].balance)
 			casino.bank.trustAccount [playerName] = nil
+			casino:SendMessage (playerName, "Your casino account has been closed")
 		else
+			casino:Print (string.format ("%s not in sector", playerName))
 		end
 	else
 		casino:SendMessage (playerName, "You must first create an account in order to close")
