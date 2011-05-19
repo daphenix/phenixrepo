@@ -2,13 +2,15 @@ casino.data = {}
 dofile ("data/bank.lua")
 
 casino.data.id = 314159265359
-casino.data.settingsOffset = 100
+casino.data.bankOffset = 100
+casino.data.settingsOffset = 101
 casino.data.isInitialized = false
 casino.data.tablesOpen = false
 casino.data.delay = 25
 casino.data.chunkSize = 10
 casino.data.stepCounter = 0
 casino.data.backupDelay = 300000
+casino.data.refreshDelay = 10000
 casino.data.chatDelay = 350
 casino.data.houseThread = nil
 casino.data.numPlayers = 0
@@ -16,20 +18,46 @@ casino.data.maxPlayers = 25
 casino.data.tables = {}
 casino.data.messageQueue = {}
 casino.data.waitQueue = {}
+casino.data.bannedList = {}
 casino.data.wins = 0
 casino.data.losses = 0
 casino.data.totalBet = 0
 casino.data.totalPaidout = 0
+casino.data.volume = 0
 
 -- Data Handling
 function casino.data:LoadUserSettings ()
+	local charId = casino.data.id + casino.data.settingsOffset
+	local temp = unspickle (LoadSystemNotes (charId)) or {
+		banned = {},
+		wins = 0,
+		losses = 0,
+		totalBet = 0,
+		totalPaidout = 0,
+		volume = 0
+	}
+	casino.data.bannedList = temp.banned or {}
+	casino.data.wins = temp.wins or 0
+	casino.data.losses = temp.losses or 0
+	casino.data.totalBet = temp.totalBet or 0
+	casino.data.totalPaidout = temp.totalPaidout or 0
+	casino.data.volume = temp.volume or 0
 end
 
 function casino.data:SaveUserSettings ()
+	local charId = casino.data.id + casino.data.settingsOffset
+	SaveSystemNotes (spickle ({
+		banned = casino.data.bannedList,
+		wins = casino.data.wins,
+		losses = casino.data.losses,
+		totalBet = casino.data.totalBet,
+		totalPaidout = casino.data.totalPaidout,
+		volume = casino.data.volume
+	}), charId)
 end
 
 function casino.data:LoadAccountInfo ()
-	local charId = casino.data.id + casino.data.settingsOffset
+	local charId = casino.data.id + casino.data.bankOffset
 	local temp = unspickle (LoadSystemNotes (charId)) or {}
 	local acct, set
 	for _, set in pairs (temp) do
@@ -41,7 +69,7 @@ function casino.data:LoadAccountInfo ()
 end
 
 function casino.data:SaveAccountInfo ()
-	local charId = casino.data.id + casino.data.settingsOffset
+	local charId = casino.data.id + casino.data.bankOffset
 	local temp = {}
 	local acct
 	for _, acct in pairs (casino.bank.trustAccount) do
@@ -53,6 +81,9 @@ function casino.data:SaveAccountInfo ()
 		})
 	end
 	SaveSystemNotes (spickle (temp), charId)
+end
+
+function casino.data:SaveLog ()
 end
 
 -- Event Handling and Initialization
@@ -126,6 +157,7 @@ function casino.data:OnEvent (event, data)
 				casino.data.tables [data.name].request = args
 				
 			elseif key == "play" then
+				casino.data.volume = casino.data.volume + 1
 				if casino.data.numPlayers < casino.data.maxPlayers then
 					-- Create a new one
 					casino.data.tables [data.name] = casino.games:CreateGame (vars, data.name)
@@ -152,7 +184,6 @@ function casino.data:OnEvent (event, data)
 		if playerName then
 			if not casino.bank.trustAccount [playerName] then
 				casino.bank:OpenAccount (playerName, tonumber (amount), true)
-				
 			else
 				casino.bank.trustAccount [playerName]:Deposit (tonumber (amount))
 			end

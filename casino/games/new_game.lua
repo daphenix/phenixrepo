@@ -3,8 +3,10 @@
 	
 	Use this template to create additional games
 ]]
+casino.games.newgame = {}
+casino.games.newgame.version = "0.1"
 
-function casino.games.NewGame (game)
+function casino.games.mygame.GetController (game)
 	local mygame = casino.games:BaseController  (game)
 	
 	-- Use the canPlay property to determine if the game will accept bets before allowing play

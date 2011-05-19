@@ -1,8 +1,10 @@
 --[[
 	Slots Game
 ]]
+casino.games.slots = {}
+casino.games.slots.version = "0.7"
 
-function casino.games.Slots (game)
+function casino.games.slots.GetController (game)
 	local slots = casino.games:BaseController  (game)
 	slots.canPlay = true
 	
@@ -104,4 +106,7 @@ function casino.games.Slots (game)
 	end
 	
 	return slots
+end
+
+function casino.games.slots.CreateConfigUI ()
 end

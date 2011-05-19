@@ -9,7 +9,7 @@
 ]]
 
 declare ("casino", {})
-casino.version = "0.5"
+casino.version = "0.8"
 dofile ("data/data.lua")
 dofile ("games/games.lua")
 dofile ("util.lua")
@@ -23,6 +23,8 @@ function casino:Help ()
 	purchaseprint ("\tremove_game <playerName> - Removes a game for the given player")
 	purchaseprint ("\topen_account <playerName> <amt> - Open a bank account for a player")
 	purchaseprint ("\tclose_account <playerName> - Closes a player's account (without cashout)'")
+	purchaseprint ("\tban <playerName> - Bans a player from playing in the casino")
+	purchaseprint ("\tunban <playerName> - Removes a player fromt the ban list")
 	purchaseprint ("\tbank - Displays all existing bank accounts")
 	purchaseprint ("\tgames - Displays all currently running games")
 	purchaseprint ("\treservations - Displays all players on the waiting list")
@@ -33,6 +35,12 @@ function casino:Help ()
 	purchaseprint ("\tbackup - Backs up all bank account information")
 	purchaseprint ("\tstart [true/false] - Starts up the Casino (if passing true/false determines debug mode)")
 	purchaseprint ("\tstop - Shuts down the Casino")
+end
+
+function casino:OpenSettings ()
+	local frame = casino.ui:CreateSettingsUI ()
+	ShowDialog (frame, iup.CENTER, iup.CENTER)
+	frame.active = "YES"
 end
 
 local debugMode = false
@@ -64,13 +72,17 @@ function casino:OpenTables (args)
 		casino.data.totalPaidout = 0
 		
 		-- Make announcement that the casino is open.  Give casino sector
-		SendChat ("The Casino is Open!", "GUILD", nil)
+		if not debugMode then
+			SendChat (string.format ("The Phoenix Casino is Open in %s!", LocationStr (GetCurrentSectorid ())), "CHANNEL", nil)
+		end
 	end
 end
 
 function casino:CloseTables ()
 	-- Make announcement that the casino is closed
-	SendChat ("The Casino is Closed!", "GUILD", nil)
+	if not debugMode then
+		SendChat ("The Phoenix Casino is Closed!", "CHANNEL", nil)
+	end
 	
 	UnregisterEvent (casino.data, "CHAT_MSG_SECTORD")
 	if debugMode then
@@ -87,6 +99,8 @@ casino.arguments = {
 	remove_game = casino.RemoveGame,
 	open_account = casino.AddAccount,
 	close_account = casino.RemoveAccount,
+	ban = casino.BanPlayer,
+	unban = casino.UnbanPlayer,
 	bank = casino.DisplayAccounts,
 	games = casino.DisplayGames,
 	reservations = casino.DisplayWaitQueue,
@@ -95,6 +109,7 @@ casino.arguments = {
 	reset = casino.Reset,
 	help = casino.Help,
 	backup = casino.data.SaveAccountInfo,
+	options = casino.OpenSettings,
 	start = casino.OpenTables,
 	stop = casino.CloseTables
 }

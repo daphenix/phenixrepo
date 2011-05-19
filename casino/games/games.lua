@@ -3,14 +3,14 @@
 ]]
 
 casino.games = {}
+dofile ("games/deck.lua")
 
 -- All games installable
 dofile ("games/front_desk.lua")
 dofile ("games/slots.lua")
 
 casino.games.gamesList = {
-	["frontdesk"] = casino.games.FrontDesk,
-	["slots"] = casino.games.Slots
+	"Slots"
 }
 
 function casino.games:BaseController (game)
@@ -24,13 +24,13 @@ function casino.games:BaseController (game)
 	
 	--[[*************************************************
 	
-		Override these 2 functions for each game if desired
+		Override these 3 functions for each game if desired
 	]]
 	
 	-- How to play this game
 	function base:Help (req) end
 	
-	-- Used for any additional processing that is needed but in default key set
+	-- Used for any additional processing that is needed but not in default key set
 	-- e.g. raise or see in Poker
 	function base:ParseKey (key, args) end
 	
@@ -103,8 +103,8 @@ function casino.games:CreateGame (gameName, playerName)
 			isDone = false,
 			request = nil
 		}
-		local controller = casino.games.gamesList [gameName:lower ()] or casino.games.FrontDesk
-		game.controller = controller (game)
+		local controller = casino.games [gameName:lower ()] or casino.games.frontdesk
+		game.controller = controller.GetController (game)
 		
 		-- Send Response to player
 		game.controller:SendMessage (game.controller.startup)

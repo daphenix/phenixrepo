@@ -4,7 +4,10 @@
 	
 	The intent here is to flesh this out more as a conversation bot
 ]]
-function casino.games.FrontDesk (game)
+casino.games.frontdesk = {}
+casino.games.frontdesk.version = "0.5"
+
+function casino.games.frontdesk.GetController (game)
 	local frontdesk = casino.games:BaseController  (game)
 	frontdesk.canPlay = true
 	local replyNumber = 0
@@ -27,7 +30,7 @@ function casino.games.FrontDesk (game)
 		"Joanna",
 		"Kylie"
 	}
-	frontdesk.startup = "This is the Front Desk.  How may I help you?"
+	frontdesk.startup = string.format ("This is the Front Desk.  My name is %s.  How may I help you?", clerks [math.random (1, #clerks)])
 	
 	function frontdesk:Help ()
 		frontdesk:ParseKey ()
@@ -45,7 +48,7 @@ function casino.games.FrontDesk (game)
 	
 	function frontdesk:Play (req)
 		-- If using the "play" keyword, check existing games and swap out if possible
-		if casino.games.gamesList [req:lower ()] then
+		if casino.games [req:lower ()] then
 			Timer ():SetTimeout (2*casino.data.delay, function ()
 				local playerName = game.player
 				local gameName = req:lower ()
@@ -60,4 +63,7 @@ function casino.games.FrontDesk (game)
 	end
 	
 	return frontdesk
+end
+
+function casino.games.frontdesk.CreateConfigUI ()
 end

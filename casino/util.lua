@@ -34,9 +34,13 @@ function casino:ChatHelp (playerName)
 	casino:SendMessage (playerName, "balance: Get your current bank balance")
 	casino:SendMessage (playerName, "withdraw <amount>: Withdraw funds from your bank account (must be in the casino sector)")
 	casino:SendMessage (playerName, "close: Close out your bank account and receive all remaining funds (must be in the casino sector)")
-	casino:SendMessage (playerName, "play: Play an existing game")
 	casino:SendMessage (playerName, "play <gameName>: Start a new game")
-	casino:SendMessage (playerName, "We have available: Slots")
+	casino:SendMessage (playerName, "play: Play an existing game")
+	casino:SendMessage (playerName, "We have available: " .. table.concat (casino.games.gamesList, ", "))
+end
+
+function casino:IsBanned (playerName)
+	return casino.data.bannedList [playerName]
 end
 
 -- Thread management
@@ -65,7 +69,9 @@ end
 function casino:RunBackup ()
 	Timer ():SetTimeout (casino.data.backupDelay, function ()
 		if casino.data.tablesOpen then
-			casino.data.SaveAccountInfo ()
+			casino.data:SaveAccountInfo ()
+			casino.data:SaveLog ()
+			casino:RunBackup ()
 		end
 	end)
 end
