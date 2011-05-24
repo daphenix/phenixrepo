@@ -6,6 +6,8 @@
 ]]
 casino.games.frontdesk = {}
 casino.games.frontdesk.version = "0.5"
+casino.games.frontdesk.name = "Front Desk"
+casino.games.frontdesk.isPlayable = false
 
 function casino.games.frontdesk.GetController (game)
 	local frontdesk = casino.games:BaseController  (game)
@@ -16,7 +18,9 @@ function casino.games.frontdesk.GetController (game)
 	local responses = {
 		"I know you are, but what am I?",
 		"What makes you think I would do that for you?",
+		"Isn't there someone else you could talk to?",
 		"Security!!",
+		"You don't have many friends, do you?",
 		"Just go away already!"
 	}
 	
@@ -39,7 +43,7 @@ function casino.games.frontdesk.GetController (game)
 	function frontdesk:ParseKey (key, args)
 		replyNumber = replyNumber + 1
 		if replyNumber < 3 then
-			frontdesk:SendMessage ("Available games are: Slots.  Just send !casino play <gameName> to play one of our games")
+			frontdesk:SendMessage (string.format ("Available games are: %s.  Just send !casino play <gameName> to play one of our games", table.concat (casino.games.gamesList, ", ")))
 		else
 			local index = math.random (1, #responses)
 			frontdesk:SendMessage (responses [index])
@@ -53,7 +57,6 @@ function casino.games.frontdesk.GetController (game)
 				local playerName = game.player
 				local gameName = req:lower ()
 				print (string.format ("Player: %s\tGame: %s", tostring (playerName), tostring (gameName)))
-				casino.data.tables [playerName] = nil
 				casino.data.numPlayers = casino.data.numPlayers - 1
 				casino.data.tables [playerName] = casino.games:CreateGame (gameName, playerName)
 			end)
@@ -65,5 +68,39 @@ function casino.games.frontdesk.GetController (game)
 	return frontdesk
 end
 
-function casino.games.frontdesk.CreateConfigUI ()
+function casino.games.frontdesk.CreateConfigUI (game)
+	local saveButton = iup.stationbutton {title="Save", font=casino.ui.font}
+	local cancelButton = iup.stationbutton {title="Cancel", font=casino.ui.font}
+	
+	local pda = iup.vbox {
+		iup.label {title = game.name .. " v" .. game.version, font=casino.ui.font},
+		iup.fill {size = 15},
+		iup.hbox {
+			iup.label {title = "Create REALLY annoyed clerks!", font=casino.ui.font},
+			iup.fill {};
+			expand = "YES"
+		},
+		iup.fill {size = 5},
+		iup.fill {},
+		iup.hbox {
+			iup.fill {},
+			saveButton,
+			cancelButton; };
+	}
+	
+	function pda:DoSave ()
+	end
+	
+	function pda:DoCancel ()
+	end
+	
+	function pda:GetSaveButton ()
+		return saveButton
+	end
+	
+	function pda:GetCancelButton ()
+		return cancelButton
+	end
+	
+	return pda
 end

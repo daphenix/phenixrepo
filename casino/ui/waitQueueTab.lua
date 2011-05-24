@@ -27,14 +27,14 @@ function casino.ui:CreateWaitQueueTab (bannedTab)
 		scrollbar = "YES",
 		widthdef = 120,
 		font = casino.ui.font,
-		bgcolor = "255 10 10 10 *"
+		bgcolor = casino.ui.bgcolor
 	}
 	
 	-- Set Headers
 	matrix:setcell (0, 1, "Index")
 	matrix:setcell (0, 2, "Name")
 	matrix:setcell (1, 1, string.rep (" ", 5))
-	matrix:setcell (1, 2, string.rep (" ", 70))
+	matrix:setcell (1, 2, string.rep (" ", 27))
 	
 	function matrix:SetSelectedRow (self, row)
 		-- Set all bgcolors
@@ -57,8 +57,8 @@ function casino.ui:CreateWaitQueueTab (bannedTab)
 		end
 		matrix.alignment1 = "ALEFT"
 		matrix.alignment2 = "ALEFT"
-		matrix.width1 = 50
-		matrix.width1 = 525
+		matrix.width1 = 75
+		matrix.width2 = 400
 	end
 	
 	function matrix.click_cb (self, row, col)
@@ -123,6 +123,7 @@ function casino.ui:CreateWaitQueueTab (bannedTab)
 		local playerName = matrix:getcell (selectedRow, 1)
 		casino:SendMessage (playerName, "A spot has opened in the Casino!")
 		table.remove (casino.data.waitQueue, selectedRow)
+		selectedRow = 0
 		waitQueueTab:ReloadData ()
 		return SetButtonState ()
 	end
@@ -131,6 +132,7 @@ function casino.ui:CreateWaitQueueTab (bannedTab)
 		local frame = casino.ui:GetBanPlayerPopup (matrix:getcell (selectedRow, 1), waitQueueTab, bannedTab)
 		ShowDialog (frame, iup.CENTER, gkinterface.GetYResolution () / 4 - 35)
 		frame.active = "YES"
+		selectedRow = 0
 		return SetButtonState ()
 	end
 	

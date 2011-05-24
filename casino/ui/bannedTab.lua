@@ -26,7 +26,7 @@ function casino.ui:CreateBannedTab ()
 		scrollbar = "YES",
 		widthdef = 120,
 		font = casino.ui.font,
-		bgcolor = "255 10 10 10 *"
+		bgcolor = casino.ui.bgcolor
 	}
 	
 	-- Set Headers
@@ -57,7 +57,7 @@ function casino.ui:CreateBannedTab ()
 		matrix.alignment1 = "ALEFT"
 		matrix.alignment2 = "ALEFT"
 		matrix.width1 = 175
-		matrix.width2 = 400
+		matrix.width2 = 300
 	end
 	
 	function matrix.click_cb (self, row, col)
@@ -136,8 +136,10 @@ function casino.ui:CreateBannedTab ()
 	end
 	
 	function removePlayerButton.action ()
-		casino.data.bannedList [matrix:getcel (selectedRow, 1)] = nil
+		casino:DoUnban (matrix:getcell (selectedRow, 1))
 		bannedTab:ReloadData ()
+		selectedRow = 0
+		return SetButtonState ()
 	end
 	
 	return bannedTab

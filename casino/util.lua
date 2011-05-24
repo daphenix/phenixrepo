@@ -43,6 +43,23 @@ function casino:IsBanned (playerName)
 	return casino.data.bannedList [playerName]
 end
 
+function casino:DoBan (playerName, reason)
+	if not casino:IsBanned (playerName) then
+		casino.data.bannedList [playerName] = reason
+		casino:SendMessage (playerName, "You have been banned from playing.  Contact a PA official to appeal")
+		if casino.data.tables [playerName] then
+			casino.data.tables [playerName].isDone = true
+		end
+	end
+end
+
+function casino:DoUnban (playerName)
+	if casino:IsBanned (playerName) then
+		casino.data.bannedList [playerName] = nil
+		casino:SendMessage (playerName, "You have been unbanned.  Please feel free to play")
+	end
+end
+
 -- Thread management
 function casino:RunPlayerProcesses ()
 	while (casino.data.tablesOpen) do
@@ -51,6 +68,7 @@ function casino:RunPlayerProcesses ()
 		for _, p in pairs (casino.data.tables) do
 			if p.isDone then
 				casino:Log (string.format ("Removing Spent Process for player %s", p.player))
+				p.controller:Close ()
 				casino.data.tables [p.player] = nil
 				casino.data.numPlayers = casino.data.numPlayers - 1
 				if #casino.data.waitQueue > 0 then

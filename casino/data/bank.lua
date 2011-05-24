@@ -23,13 +23,13 @@ function casino.bank:OpenAccount (playerName, amt, makeAnnouncement)
 			return result
 		end
 		
-		function acct:MakeBet (amt, showMessages)
-			showMessages = showMessages or false
+		function acct:MakeBet (amt, showMessage)
+			showMessage = showMessage or false
 			if amt > 0 and amt <= acct.balance + acct.creditLine then
 				acct.currentBet = amt
 				acct.balance = acct.balance - amt
 				casino.data.totalBet = casino.data.totalBet + amt
-				if showMessages then acct:SendMessage (string.format ("Your bet of %dc has been registered", amt)) end
+				if showMessage then acct:SendMessage (string.format ("Your bet of %dc has been registered", amt)) end
 				return true
 			else
 				acct:SendMessage (string.format ("Bet must be more than 0c and no more than %dc", (acct.balance + acct.creditLine)))
@@ -54,10 +54,14 @@ function casino.bank:OpenAccount (playerName, amt, makeAnnouncement)
 			end
 		end
 		
-		function acct:Deposit (amt)
+		function acct:Deposit (amt, showMessage)
+			casino:Log (string.format ("%d was deposited in the account of %s", amt, acct.player))
+			if not showMessage then showMessage = true end
 			if amt > 0 then
 				acct.balance = acct.balance + amt
-				acct:SendMessage (string.format ("%dc Deposited", amt))
+				if showMessage then
+					acct:SendMessage (string.format ("%dc Deposited", amt))
+				end
 			end
 		end
 		

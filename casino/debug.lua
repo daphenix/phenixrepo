@@ -45,10 +45,7 @@ function casino:BanPlayer (args)
 		if #args == 3 then
 			reason = args [3]
 		end
-		if not casino:IsBanned (playerName) then
-			casino.data.bannedList [playerName] = reason
-			casino:SendMessage (playerName, "You have been banned from playing.  Contact a PA official to appeal")
-		end
+		casino:DoBan (playerName, reason)
 	else
 		casino:Help ()
 	end
@@ -108,6 +105,8 @@ function casino:DisplayGameStats ()
 	print (string.format ("\127888822Numbers of losses: %d\127o", casino.data.losses))
 	print (string.format ("\127888822Total credits bet into bank: %d\127o", casino.data.totalBet))
 	print (string.format ("\127888822Total credits paid out by bank: %d\127o", casino.data.totalPaidout))
+	print (string.format ("\127888822Current number of players: %d", casino.data.numPlayers))
+	print (string.format ("\127888822Total volume since last reset: %d\127o", casino.data.olume))
 end
 
 function casino:Status ()
@@ -125,7 +124,7 @@ end
 
 function casino:Reset ()
 	math.randomseed (os.time ())
-	math.random ()
+	math.random (1, 100)
 	casino.data.wins = 0
 	casino.data.losses = 0
 	casino.data.totalBet = 0

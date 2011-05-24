@@ -29,6 +29,7 @@ casino.data.volume = 0
 function casino.data:LoadUserSettings ()
 	local charId = casino.data.id + casino.data.settingsOffset
 	local temp = unspickle (LoadSystemNotes (charId)) or {
+		maxPlayers = 25,
 		banned = {},
 		wins = 0,
 		losses = 0,
@@ -36,6 +37,7 @@ function casino.data:LoadUserSettings ()
 		totalPaidout = 0,
 		volume = 0
 	}
+	casino.data.maxPlayers = temp.maxPlayers or 25
 	casino.data.bannedList = temp.banned or {}
 	casino.data.wins = temp.wins or 0
 	casino.data.losses = temp.losses or 0
@@ -47,6 +49,7 @@ end
 function casino.data:SaveUserSettings ()
 	local charId = casino.data.id + casino.data.settingsOffset
 	SaveSystemNotes (spickle ({
+		maxPlayers = casino.data.maxPlayers,
 		banned = casino.data.bannedList,
 		wins = casino.data.wins,
 		losses = casino.data.losses,
@@ -93,6 +96,9 @@ function casino.data.initialize:OnEvent (event, id)
 		UnregisterEvent (casino.data.initialize, "PLAYER_ENTERED_GAME")
 		casino.data:LoadUserSettings ()
 		casino.data:LoadAccountInfo ()
+		
+		-- Set up Games
+		casino.games:SetupGames ()
 		
 		-- Event Registration
 		RegisterEvent (casino.data.logout, "PLAYER_LOGGED_OUT")
@@ -159,8 +165,13 @@ function casino.data:OnEvent (event, data)
 			elseif key == "play" then
 				casino.data.volume = casino.data.volume + 1
 				if casino.data.numPlayers < casino.data.maxPlayers then
-					-- Create a new one
-					casino.data.tables [data.name] = casino.games:CreateGame (vars, data.name)
+					if casino:IsBanned (data.name) then
+						-- Player is banned
+						casino:SendMessage (data.name, "You have been banned.  You may not play until you have been unbanned")
+					else
+						-- Create a new one
+						casino.data.tables [data.name] = casino.games:CreateGame (vars, data.name)
+					end
 				else
 					-- We're full up.
 					-- Inform the player he will be placed in a wait queue and his position withn the queue

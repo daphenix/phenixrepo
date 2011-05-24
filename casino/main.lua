@@ -1,7 +1,7 @@
 --[[
 	Casino Manager
 	
-	Author: Keller  aka "Jackie the Coder"
+	Author: Keller  aka "Jak the Coder"
 	
 	This is set up so a main process thread is constantly in listener mode so long as the tables are open.
 	Individual players will have separate process threads spawned for their play which will be responsible
@@ -9,7 +9,7 @@
 ]]
 
 declare ("casino", {})
-casino.version = "0.8"
+casino.version = "1.0.1"
 dofile ("data/data.lua")
 dofile ("games/games.lua")
 dofile ("util.lua")
@@ -22,7 +22,7 @@ function casino:Help ()
 	purchaseprint ("\tadd_game <playerName> <gameName> - Add a game for a given player to the open tables list")
 	purchaseprint ("\tremove_game <playerName> - Removes a game for the given player")
 	purchaseprint ("\topen_account <playerName> <amt> - Open a bank account for a player")
-	purchaseprint ("\tclose_account <playerName> - Closes a player's account (without cashout)'")
+	purchaseprint ("\tclose_account <playerName> - Closes a player's account (without cashout)")
 	purchaseprint ("\tban <playerName> - Bans a player from playing in the casino")
 	purchaseprint ("\tunban <playerName> - Removes a player fromt the ban list")
 	purchaseprint ("\tbank - Displays all existing bank accounts")
@@ -35,6 +35,7 @@ function casino:Help ()
 	purchaseprint ("\tbackup - Backs up all bank account information")
 	purchaseprint ("\tstart [true/false] - Starts up the Casino (if passing true/false determines debug mode)")
 	purchaseprint ("\tstop - Shuts down the Casino")
+	purchaseprint ("\toptions - Brings up the admin screen")
 end
 
 function casino:OpenSettings ()

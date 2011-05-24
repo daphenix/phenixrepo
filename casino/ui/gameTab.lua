@@ -20,7 +20,7 @@ function casino.ui:CreateGameTab (bannedTab)
 
 	-- Build Data Matrix
 	local matrix = iup.pdasubmatrix {
-		numcol = 2,
+		numcol = 3,
 		numlin = 1,
 		numlin_visible = 10,
 		heightdef = 15,
@@ -28,14 +28,16 @@ function casino.ui:CreateGameTab (bannedTab)
 		scrollbar = "YES",
 		widthdef = 120,
 		font = casino.ui.font,
-		bgcolor = "255 10 10 10 *"
+		bgcolor = casino.ui.bgcolor
 	}
 	
 	-- Set Headers
 	matrix:setcell (0, 1, "Name")
 	matrix:setcell (0, 2, "Game")
-	matrix:setcell (1, 1, string.rep (" ", 35))
-	matrix:setcell (1, 2, string.rep (" ", 35))
+	matrix:setcell (0, 3, "Date Started")
+	matrix:setcell (1, 1, string.rep (" ", 27))
+	matrix:setcell (1, 2, string.rep (" ", 30))
+	matrix:setcell (1, 3, string.rep (" ", 25))
 	
 	function matrix:SetSelectedRow (self, row)
 		-- Set all bgcolors
@@ -55,11 +57,14 @@ function casino.ui:CreateGameTab (bannedTab)
 		if data then
 			matrix:setcell (row, 1, tostring (data.player))
 			matrix:setcell (row, 2, tostring (data.name))
+			matrix:setcell (row, 3, tostring (data.startdate))
 		end
 		matrix.alignment1 = "ALEFT"
 		matrix.alignment2 = "ALEFT"
-		matrix.width1 = 250
-		matrix.width2 = 250
+		matrix.alignment3 = "ALEFT"
+		matrix.width1 = 175
+		matrix.width2 = 125
+		matrix.width3 = 175
 	end
 	
 	function matrix.click_cb (self, row, col)
@@ -104,7 +109,8 @@ function casino.ui:CreateGameTab (bannedTab)
 		for name, game in pairs (casino.data.tables) do
 			table.insert (list, {
 				name = game.name,
-				player = game.player
+				player = game.player,
+				startdate = game.startdate
 			})
 		end
 		table.sort (list, function (a,b)
@@ -184,6 +190,7 @@ function casino.ui:CreateGameTab (bannedTab)
 			
 			function createButton:action ()
 				casino.data.tables [playerName.value] = casino.games:CreateGame (gameName.value, playerName.value)
+				casino.data.volume = casino.data.volume + 1
 				HideDialog (frame)
 				frame.active = "NO"
 				gameTab:ReloadData ()
@@ -219,6 +226,7 @@ function casino.ui:CreateGameTab (bannedTab)
 		local frame = casino.ui:GetBanPlayerPopup (matrix:getcell (selectedRow, 1), gameTab, bannedTab)
 		ShowDialog (frame, iup.CENTER, gkinterface.GetYResolution () / 4 - 35)
 		frame.active = "YES"
+		selectedRow = 0
 		return SetButtonState ()
 	end
 	

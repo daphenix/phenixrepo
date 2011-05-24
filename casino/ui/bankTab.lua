@@ -25,7 +25,7 @@ function casino.ui:CreateBankTab ()
 		scrollbar = "YES",
 		widthdef = 120,
 		font = casino.ui.font,
-		bgcolor = "255 10 10 10 *"
+		bgcolor = casino.ui.bgcolor
 	}
 	
 	-- Set Headers

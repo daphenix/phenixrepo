@@ -19,33 +19,28 @@ function casino.ui:CreateStatsTab ()
 				iup.hbox {
 					iup.label {title="Number of wins: ", font=casino.ui.font, fgcolor=casino.ui.fgcolor},
 					winsLabel;
-					expand = "HORIZONTAL"
 				},
 				iup.hbox {
 					iup.label {title="Number of losses: ", font=casino.ui.font, fgcolor=casino.ui.fgcolor},
 					lossesLabel;
-					expand = "HORIZONTAL"
 				},
 				iup.hbox {
 					iup.label {title="Total credits bet into bank: ", font=casino.ui.font, fgcolor=casino.ui.fgcolor},
 					totalBetsLabel;
-					expand = "HORIZONTAL"
 				},
 				iup.hbox {
 					iup.label {title="Total credits paid out by bank: ", font=casino.ui.font, fgcolor=casino.ui.fgcolor},
 					totalPayoutsLabel;
-					expand = "HORIZONTAL"
 				},
 				iup.hbox {
 					iup.label {title="Volume since Last Reset: ", font=casino.ui.font, fgcolor=casino.ui.fgcolor},
 					volumeLabel;
-					expand = "HORIZONTAL"
 				},
 				iup.fill {size=25};
-				expand = "VERTICAL"
+				expand = "YES"
 			},
 			iup.fill {};
-			expand = "HORIZONTAL"
+			expand = "YES"
 		};
 		tabtitle="Statistics",
 		font=casino.ui.font,
