@@ -36,7 +36,7 @@ function casino.ui:CreateStatsTab ()
 					iup.label {title="Volume since Last Reset: ", font=casino.ui.font, fgcolor=casino.ui.fgcolor},
 					volumeLabel;
 				},
-				iup.fill {size=25};
+				iup.fill {};
 				expand = "YES"
 			},
 			iup.fill {};

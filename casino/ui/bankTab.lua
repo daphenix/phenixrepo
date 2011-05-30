@@ -45,9 +45,9 @@ function casino.ui:CreateBankTab ()
 		for l=1, self.numlin do
 			bgcolor = string.format ("bgcolor%d:*", l)
 			if l == row then
-				self [bgcolor] = "255 150 150 150 *"
+				self [bgcolor] = casino.ui.highlight
 			else
-				self [bgcolor] = "255 10 10 10 *"
+				self [bgcolor] = casino.ui.bgcolor
 			end
 		end
 	end
@@ -77,7 +77,6 @@ function casino.ui:CreateBankTab ()
 		iup.hbox {
 			iup.fill {size = 5},
 			iup.vbox {
-				iup.fill {size = 25},
 				matrix,
 				iup.fill {size = 25},
 				iup.hbox {
@@ -185,7 +184,7 @@ function casino.ui:CreateBankTab ()
 				expand = 'YES',
 				active = 'NO',
 				menubox = 'NO',
-				bgcolor = "255 10 10 10 *",
+				bgcolor = casino.ui.bgcolor,
 				defaultesc = cancelButton
 			}
 			

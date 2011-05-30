@@ -7,6 +7,7 @@ dofile ("ui/gameTab.lua")
 dofile ("ui/waitQueueTab.lua")
 dofile ("ui/bannedTab.lua")
 dofile ("ui/gameConfigTab.lua")
+dofile ("ui/adTab.lua")
 	
 -- Define local popup for banning players
 -- Done here because it's shared across multiple screens 
@@ -79,11 +80,12 @@ function casino.ui:CreatePdaUI ()
 	local cancelButton = iup.stationbutton { title="Cancel", font=casino.ui.font}
 	
 	-- Build basic control box
-	local debugToggle = iup.stationtoggle {title="  Use Debug Mode?", fgcolor=navcomp.ui.fgcolor}
+	local casinoName = iup.text {value = casino.data.name, size = "200x"}
+	local debugToggle = iup.stationtoggle {title="  Use Debug Mode?", fgcolor=casino.ui.fgcolor}
 	local activateButton = iup.stationbutton {title="Start", font=casino.ui.font}
 	local resetButton = iup.stationbutton {title = "Reset", font = casino.ui.font}
 	local statusLabel = iup.label {title = "", font=casino.ui.font, size = "150x"}
-	local maxGameLimit = iup.text {value = "    ", size = "40x"}
+	local maxGameLimit = iup.text {value = "", size = "40x"}
 	local currentPlayers = iup.label {title = tostring (casino.data.numPlayers), fgcolor=casino.ui.fgcolor, font=casino.ui.font}
 	local currentTime = iup.label {title = os.date (), fgcolor=casino.ui.fgcolor, font=casino.ui.font}
 	
@@ -151,6 +153,7 @@ function casino.ui:CreatePdaUI ()
 	local gameTab = casino.ui:CreateGameTab (bannedTab)
 	local waitQueueTab = casino.ui:CreateWaitQueueTab (bannedTab)
 	local configTab = casino.ui:CreateGameConfigTab ()
+	local adTab = casino.ui:CreateAdTab ()
 	
 	-- Assemble Tab Frame
 	local tabframe = iup.roottabtemplate {
@@ -159,12 +162,18 @@ function casino.ui:CreatePdaUI ()
 		gameTab,
 		waitQueueTab,
 		bannedTab,
-		configTab;
+		configTab,
+		adTab;
 		expand = "YES"
 	}
 	
 	local pda = iup.vbox {
 		iup.label {title = "Casino Settings v" .. casino.version, font=casino.ui.font},
+		iup.fill {size = 15},
+		iup.hbox {
+			iup.label {title = "Casino Name: ", font=casino.ui.font, fgcolor=casino.ui.fgcolor},
+			casinoName;
+		},
 		iup.fill {size = 15},
 		status,
 		iup.fill {size = 5},
@@ -189,17 +198,24 @@ function casino.ui:CreatePdaUI ()
 		iup.Refresh (pda)
 	end
 	
+	function pda:GetCasinoName ()
+		return casinoName.value
+	end
+	
 	function pda:GetPlayerLimit ()
 		return tonumber (maxGameLimit.value)
 	end
 	
 	function pda:DoSave ()
+		casino.data.name = pda:GetCasinoName ()
 		casino.data.maxPlayers = pda:GetPlayerLimit ()
+		adTab:DoSave ()
 		casino.data:SaveUserSettings ()
 	end
 	
 	function pda:DoCancel ()
 		casino.data:LoadUserSettings ()
+		pda:ReloadData ()
 		SetPlayerLimit ()
 	end
 	
@@ -244,7 +260,7 @@ function casino.ui:CreateSettingsUI ()
 		expand = 'YES',
 		active = 'NO',
 		menubox = 'NO',
-		bgcolor = "255 10 10 10 *",
+		bgcolor = casino.ui.bgcolor,
 		defaultesc = pda:GetCancelButton ()
 	}
 	

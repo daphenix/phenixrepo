@@ -2,14 +2,17 @@
 	Casino Thread handling and utlities
 ]]
 
-function casino:Message (playerName, msg)
+function casino:Message (playerName, msg, isPublic)
+	local type = "CHANNEL"
+	if not isPublic then type = "PRIVATE" end
 	local message = {
 		player = playerName,
-		msg = msg
+		msg = msg,
+		type = type,
+		Send = function ()
+			SendChat (msg, type, playerName)
+		end
 	}
-	function message:Send ()
-		SendChat (message.msg, "PRIVATE", message.player)
-	end
 	
 	return message
 end
@@ -21,6 +24,10 @@ end
 
 function casino:SendMessage (playerName, msg)
 	table.insert (casino.data.messageQueue, casino:Message (playerName, msg))
+end
+
+function casino:SendPublicMessage (msg)
+	table.insert (casino.data.messageQueue, casino:Message (nil, msg, true))
 end
 
 function casino:Log (msg)
@@ -94,12 +101,25 @@ function casino:RunBackup ()
 	end)
 end
 
+function casino:RunAnnouncements ()
+	Timer ():SetTimeout (casino.data.adDelay, function ()
+		if casino.data.tablesOpen then
+			-- Get an ad from the list and create a message
+			local totalAds = #casino.data.announcements
+			if casino.data.useAnnouncements and totalAds > 0 then
+				casino:SendPublicMessage (casino.data.announcements [math.random (1, totalAds)])
+				casino:RunAnnouncements ()
+			end
+		end
+	end)
+end
+
 function casino:RunMessageQueue ()
 	Timer ():SetTimeout (casino.data.chatDelay, function ()
 		if casino.data.tablesOpen then
 			if #casino.data.messageQueue > 0 then
-				casino.data.messageQueue [1]:Send ()
-				table.remove (casino.data.messageQueue, 1)
+				--casino.data.messageQueue [1]:Send ()
+				table.remove (casino.data.messageQueue, 1):Send ()
 			end
 			casino:RunMessageQueue ()
 		end

@@ -9,7 +9,7 @@
 ]]
 
 declare ("casino", {})
-casino.version = "1.0.1"
+casino.version = "1.1.1"
 dofile ("data/data.lua")
 dofile ("games/games.lua")
 dofile ("util.lua")
@@ -66,6 +66,9 @@ function casino:OpenTables (args)
 		casino:RunHouseThread ()
 		casino:RunMessageQueue ()
 		casino:RunBackup ()
+		if casino.data.useAnnouncements then
+			casino:RunAnnouncements ()
+		end
 		
 		casino.data.wins = 0
 		casino.data.losses = 0
@@ -74,15 +77,16 @@ function casino:OpenTables (args)
 		
 		-- Make announcement that the casino is open.  Give casino sector
 		if not debugMode then
-			SendChat (string.format ("The Phoenix Casino is Open in %s!", LocationStr (GetCurrentSectorid ())), "CHANNEL", nil)
+			SendChat (string.format ("The %s is Open in %s!", casino.data.name, LocationStr (GetCurrentSectorid ())), "CHANNEL", nil)
 		end
 	end
 end
 
 function casino:CloseTables ()
 	-- Make announcement that the casino is closed
+	casino.data.tablesOpen = false
 	if not debugMode then
-		SendChat ("The Phoenix Casino is Closed!", "CHANNEL", nil)
+		SendChat (string.format ("The %s is Closed!", casino.data.name), "CHANNEL", nil)
 	end
 	
 	UnregisterEvent (casino.data, "CHAT_MSG_SECTORD")
@@ -92,7 +96,6 @@ function casino:CloseTables ()
 		UnregisterEvent (casino.data, "CHAT_MSG_PRIVATE")
 	end
 	debugMode = false
-	casino.data.tablesOpen = false
 end
 
 casino.arguments = {

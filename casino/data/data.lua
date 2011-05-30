@@ -5,6 +5,7 @@ casino.data.id = 314159265359
 casino.data.bankOffset = 100
 casino.data.settingsOffset = 101
 casino.data.isInitialized = false
+casino.data.name = "Phoenix Casino"
 casino.data.tablesOpen = false
 casino.data.delay = 25
 casino.data.chunkSize = 10
@@ -12,6 +13,7 @@ casino.data.stepCounter = 0
 casino.data.backupDelay = 300000
 casino.data.refreshDelay = 10000
 casino.data.chatDelay = 350
+casino.data.adDelay = 600000
 casino.data.houseThread = nil
 casino.data.numPlayers = 0
 casino.data.maxPlayers = 25
@@ -19,6 +21,8 @@ casino.data.tables = {}
 casino.data.messageQueue = {}
 casino.data.waitQueue = {}
 casino.data.bannedList = {}
+casino.data.useAnnouncements = false
+casino.data.announcements = {}
 casino.data.wins = 0
 casino.data.losses = 0
 casino.data.totalBet = 0
@@ -31,6 +35,9 @@ function casino.data:LoadUserSettings ()
 	local temp = unspickle (LoadSystemNotes (charId)) or {
 		maxPlayers = 25,
 		banned = {},
+		ads = {},
+		useAds = "false",
+		adDelay = 600000,
 		wins = 0,
 		losses = 0,
 		totalBet = 0,
@@ -39,6 +46,9 @@ function casino.data:LoadUserSettings ()
 	}
 	casino.data.maxPlayers = temp.maxPlayers or 25
 	casino.data.bannedList = temp.banned or {}
+	casino.data.useAnnouncements = temp.useAds == "true"
+	casino.data.announcements = temp.ads or {}
+	casino.data.adDelay = temp.adDelay or 0
 	casino.data.wins = temp.wins or 0
 	casino.data.losses = temp.losses or 0
 	casino.data.totalBet = temp.totalBet or 0
@@ -51,6 +61,9 @@ function casino.data:SaveUserSettings ()
 	SaveSystemNotes (spickle ({
 		maxPlayers = casino.data.maxPlayers,
 		banned = casino.data.bannedList,
+		ads = casino.data.announcements,
+		useAds = tostring (casino.data.useAnnouncements),
+		adDelay = casino.data.adDelay,
 		wins = casino.data.wins,
 		losses = casino.data.losses,
 		totalBet = casino.data.totalBet,
