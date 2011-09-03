@@ -56,7 +56,7 @@ function casino.games.frontdesk.GetController (game)
 			Timer ():SetTimeout (2*casino.data.delay, function ()
 				local playerName = game.player
 				local gameName = req:lower ()
-				print (string.format ("Player: %s\tGame: %s", tostring (playerName), tostring (gameName)))
+				casino:Log (string.format ("Player: %s\tGame: %s", tostring (playerName), tostring (gameName)))
 				casino.data.numPlayers = casino.data.numPlayers - 1
 				casino.data.tables [playerName] = casino.games:CreateGame (gameName, playerName)
 			end)
@@ -69,38 +69,16 @@ function casino.games.frontdesk.GetController (game)
 end
 
 function casino.games.frontdesk.CreateConfigUI (game)
-	local saveButton = iup.stationbutton {title="Save", font=casino.ui.font}
-	local cancelButton = iup.stationbutton {title="Cancel", font=casino.ui.font}
-	
-	local pda = iup.vbox {
-		iup.label {title = game.name .. " v" .. game.version, font=casino.ui.font},
-		iup.fill {size = 15},
-		iup.hbox {
-			iup.label {title = "Create REALLY annoyed clerks!", font=casino.ui.font},
-			iup.fill {};
-			expand = "YES"
-		},
-		iup.fill {size = 5},
-		iup.fill {},
-		iup.hbox {
-			iup.fill {},
-			saveButton,
-			cancelButton; };
+	local ui = iup.hbox {
+		iup.label {title = "Create REALLY annoyed clerks!", font=casino.ui.font, expand="YES"};
+		expand = "YES"
 	}
 	
-	function pda:DoSave ()
+	function ui:DoSave ()
 	end
 	
-	function pda:DoCancel ()
+	function ui:DoCancel ()
 	end
 	
-	function pda:GetSaveButton ()
-		return saveButton
-	end
-	
-	function pda:GetCancelButton ()
-		return cancelButton
-	end
-	
-	return pda
+	return ui
 end

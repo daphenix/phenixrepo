@@ -4,6 +4,10 @@
 	GUI management for bank functions
 ]]
 function casino.ui:CreateBankTab ()
+	local profitTrigger = iup.text {value=casino.data.profitTrigger, font=casino.ui.font, size="100x"}
+	local profitTransferAmount = iup.text {value=casino.data.profitTransferAmount, font=casino.ui.font, size="100x"}
+	local lossTrigger = iup.text {value=casino.data.lossTrigger, font=casino.ui.font, size="100x"}
+	local lossTransferAmount = iup.text {value=casino.data.lossTransferAmount, font=casino.ui.font, size="100x"}
 	local createAccountButton = iup.stationbutton { title="Create Account", font=casino.ui.font}
 	local closeAccountButton = iup.stationbutton { title="Close Account", font=casino.ui.font, active="NO"}
 	local selectedRow = 0
@@ -77,6 +81,23 @@ function casino.ui:CreateBankTab ()
 		iup.hbox {
 			iup.fill {size = 5},
 			iup.vbox {
+				iup.hbox {
+					iup.label {title="Profit Trigger: ", font=casino.ui.font, fgcolor=casino.ui.fgcolor, size="120x"},
+					profitTrigger,
+					iup.fill {},
+					iup.label {title="Profit Transfer: ", font=casino.ui.font, fgcolor=casino.ui.fgcolor},
+					profitTransferAmount;
+					expand="YES"
+				},
+				iup.hbox {
+					iup.label {title="Loss Trigger: ", font=casino.ui.font, fgcolor=casino.ui.fgcolor, size="120x"},
+					lossTrigger,
+					iup.fill {},
+					iup.label {title="Loss Transfer: ", font=casino.ui.font, fgcolor=casino.ui.fgcolor},
+					lossTransferAmount;
+					expand="YES"
+				},
+				iup.fill {size = 5},
 				matrix,
 				iup.fill {size = 25},
 				iup.hbox {
@@ -94,6 +115,13 @@ function casino.ui:CreateBankTab ()
 		font=casino.ui.font,
 		expand = "YES"
 	}
+	
+	function bankTab:DoSave ()
+		casino.data.profitTrigger = tonumber (profitTrigger.value)
+		casino.data.profitTransferAmount = tonumber (profitTransferAmount.value)
+		casino.data.lossTrigger = tonumber (lossTrigger.value)
+		casino.data.lossTransferAmount = tonumber (lossTransferAmount.value)
+	end
 	
 	function bankTab:ClearData ()
 		local i
@@ -132,6 +160,10 @@ function casino.ui:CreateBankTab ()
 			matrix.addlin = row
 			matrix:Set (0)
 		end
+		profitTrigger.value = casino.data.profitTrigger
+		profitTransferAmount.value = casino.data.profitTransferAmount
+		lossTrigger.value = casino.data.lossTrigger
+		lossTransferAmount.value = casino.data.lossTransferAmount
 		iup.Refresh (bankTab)
 	end
 	bankTab:ReloadData ()
@@ -216,7 +248,7 @@ function casino.ui:CreateBankTab ()
 	end
 	
 	function closeAccountButton:action ()
-		casino.bank:CloseAccount (matrix:getcell (selectedRow, 1))
+		casino.bank:CloseAccount (matrix:getcell (selectedRow, 1), true)
 		selectedRow = 0
 		bankTab:ReloadData ()
 		return SetButtonState ()

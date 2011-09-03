@@ -218,6 +218,7 @@ function casino.ui:CreateGameTab (bannedTab)
 	function removeGameButton.action ()
 		casino.data.tables [matrix:getcell (selectedRow, 1)] = nil
 		selectedRow = 0
+		casino.data.numPlayers = casino.data.numPlayers - 1
 		return SetButtonState ()
 	end
 	

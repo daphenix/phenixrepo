@@ -29,10 +29,11 @@ function casino.bank:OpenAccount (playerName, amt, makeAnnouncement)
 				acct.currentBet = amt
 				acct.balance = acct.balance - amt
 				casino.data.totalBet = casino.data.totalBet + amt
+				casino.data.betTransfer = casino.data.betTransfer + amt
 				if showMessage then acct:SendMessage (string.format ("Your bet of %dc has been registered", amt)) end
 				return true
 			else
-				acct:SendMessage (string.format ("Bet must be more than 0c and no more than %dc", (acct.balance + acct.creditLine)))
+				acct:SendMessage (string.format ("Maximum Bet is %dc", (acct.balance + acct.creditLine)))
 				return false
 			end
 		end
@@ -75,7 +76,41 @@ function casino.bank:OpenAccount (playerName, amt, makeAnnouncement)
 	end
 end
 
-function casino.bank:CloseAccount (playerName)
+-- Create a simulated bank account for testing purposes
+function casino.bank:CreateSimulationAccount (playerName, amt, simulator)
+	local acct = {
+		player = playerName,
+		balance = amt,
+		creditLine = 0,
+		currentBet = 0
+	}
+
+	function acct:SendMessage (msg) end
+	
+	function acct:MakeBet (amt)
+		acct.currentBet = amt
+		acct.balance = acct.balance - amt
+		simulator.totalBet = simulator.totalBet + amt
+		
+		return true
+	end
+		
+	function acct:Withdraw (amt)
+		if amt >= 0 and amt <= acct.balance then
+			acct.balance = acct.balance - amt
+		end
+	end
+	
+	function acct:Deposit (amt)
+		if amt > 0 then
+			acct.balance = acct.balance + amt
+		end
+	end
+	
+	return acct
+end
+
+function casino.bank:CloseAccount (playerName, isAdmin)
 	casino:Log (string.format ("Closeout account attempt for %s", playerName))
 	if casino.bank.trustAccount [playerName]  then
 		if casino.bank.trustAccount [playerName]:IsPlayerInSector () then
@@ -83,10 +118,15 @@ function casino.bank:CloseAccount (playerName)
 			GiveMoney (playerName, casino.bank.trustAccount [playerName].balance)
 			casino.bank.trustAccount [playerName] = nil
 			casino:SendMessage (playerName, "Your casino account has been closed")
-		else
-			casino:Print (string.format ("%s not in sector", playerName))
+		elseif isAdmin then
+			local s = string.format ("%s not in sector", playerName)
+			casino:Log (s)
+			casino.ui:CreateApprovalUI (s, "Close Anyway?", function ()
+				casino.bank.trustAccount [playerName] = nil
+				casino:Log ("Account forced closed")
+			end)
 		end
-	else
+	elseif not isAdmin then
 		casino:SendMessage (playerName, "You must first create an account in order to close")
 	end
 end

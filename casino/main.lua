@@ -9,7 +9,7 @@
 ]]
 
 declare ("casino", {})
-casino.version = "1.1.1"
+casino.version = "1.2.1"
 dofile ("data/data.lua")
 dofile ("games/games.lua")
 dofile ("util.lua")
@@ -46,56 +46,69 @@ end
 
 local debugMode = false
 function casino:OpenTables (args)
-	debugMode = (args [2] == "true")
-	casino:Reset ()
-	casino:Print ("Casino is Open")
-	if not casino.data.houseThread or coroutine.status (casino.data.houseThread) == "dead" then
-		-- Create house thread
-		casino.data.houseThread = coroutine.create (casino.RunPlayerProcesses)
-	end
-	
-	-- Start plotter thread
-	if debugMode then
-		RegisterEvent (casino.data, "CHAT_MSG_GROUP")
-	else
-		RegisterEvent (casino.data, "CHAT_MSG_PRIVATE")
-	end
-	RegisterEvent (casino.data, "CHAT_MSG_SECTORD")
-	casino.data.tablesOpen = true
-	if coroutine.status (casino.data.houseThread) == "suspended" then
-		casino:RunHouseThread ()
-		casino:RunMessageQueue ()
-		casino:RunBackup ()
-		if casino.data.useAnnouncements then
-			casino:RunAnnouncements ()
+	if not casino.data.tablesOpen then
+		debugMode = (args [2] == "true")
+		casino:Reset ()
+		casino:Print ("Casino is Open")
+		if not casino.data.houseThread or coroutine.status (casino.data.houseThread) == "dead" then
+			-- Create house thread
+			casino.data.houseThread = coroutine.create (casino.RunPlayerProcesses)
 		end
 		
-		casino.data.wins = 0
-		casino.data.losses = 0
-		casino.data.totalBet = 0
-		casino.data.totalPaidout = 0
-		
-		-- Make announcement that the casino is open.  Give casino sector
-		if not debugMode then
-			SendChat (string.format ("The %s is Open in %s!", casino.data.name, LocationStr (GetCurrentSectorid ())), "CHANNEL", nil)
+		-- Start plotter thread
+		if debugMode then
+			RegisterEvent (casino.data.debug, "CHAT_MSG_GROUP")
+		else
+			RegisterEvent (casino.data, "CHAT_MSG_PRIVATE")
+		end
+		RegisterEvent (casino.data, "CHAT_MSG_SECTORD")
+		if casino.data.contactPlayers then
+			RegisterEvent (casino.data.com, "PLAYER_ENTERED_SECTOR")
+			casino.data.contactActive = true
+		end
+		casino.data.tablesOpen = true
+		if coroutine.status (casino.data.houseThread) == "suspended" then
+			casino:RunThreads ()
+			casino:RunMessageQueue ()
+			casino:RunBackup ()
+			if casino.data.useAnnouncements then
+				casino:RunAnnouncements ()
+			end
+			
+			casino.data.wins = 0
+			casino.data.losses = 0
+			casino.data.totalBet = 0
+			casino.data.totalPaidout = 0
+			casino.data.betTransfer = 0
+			casino.data.paidoutTransfer = 0
+			
+			-- Make announcement that the casino is open.  Give casino sector
+			if not debugMode then
+				SendChat (string.format ("The %s is Open in %s!", casino.data.name, LocationStr (GetCurrentSectorid ())), "CHANNEL", 100)
+			end
 		end
 	end
 end
 
 function casino:CloseTables ()
 	-- Make announcement that the casino is closed
-	casino.data.tablesOpen = false
-	if not debugMode then
-		SendChat (string.format ("The %s is Closed!", casino.data.name), "CHANNEL", nil)
+	if casino.data.tablesOpen then
+		casino.data.tablesOpen = false
+		if not debugMode then
+			SendChat (string.format ("The %s is Closed!", casino.data.name), "CHANNEL", nil)
+		end
+		
+		if casino.data.contactActive then
+			UnregisterEvent (casino.data.com, "PLAYER_ENTERED_SECTOR")
+		end
+		UnregisterEvent (casino.data, "CHAT_MSG_SECTORD")
+		if debugMode then
+			UnregisterEvent (casino.data.debug, "CHAT_MSG_GROUP")
+		else
+			UnregisterEvent (casino.data, "CHAT_MSG_PRIVATE")
+		end
+		debugMode = false
 	end
-	
-	UnregisterEvent (casino.data, "CHAT_MSG_SECTORD")
-	if debugMode then
-		UnregisterEvent (casino.data, "CHAT_MSG_GROUP")
-	else
-		UnregisterEvent (casino.data, "CHAT_MSG_PRIVATE")
-	end
-	debugMode = false
 end
 
 casino.arguments = {

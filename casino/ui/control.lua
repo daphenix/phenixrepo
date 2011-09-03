@@ -86,8 +86,8 @@ function casino.ui:CreatePdaUI ()
 	local resetButton = iup.stationbutton {title = "Reset", font = casino.ui.font}
 	local statusLabel = iup.label {title = "", font=casino.ui.font, size = "150x"}
 	local maxGameLimit = iup.text {value = "", size = "40x"}
-	local currentPlayers = iup.label {title = tostring (casino.data.numPlayers), fgcolor=casino.ui.fgcolor, font=casino.ui.font}
-	local currentTime = iup.label {title = os.date (), fgcolor=casino.ui.fgcolor, font=casino.ui.font}
+	local currentPlayers = iup.label {title = tostring (casino.data.numPlayers), font=casino.ui.font}
+	local currentTime = iup.label {title = os.date (casino.ui.dateFormat), font=casino.ui.font}
 	
 	local function SetCasinoStatus ()
 		if casino.data.tablesOpen then
@@ -103,7 +103,7 @@ function casino.ui:CreatePdaUI ()
 	
 	local function SetCasinoData ()
 		currentPlayers.title = tostring (casino.data.numPlayers)
-		currentTime.title = os.date ()
+		currentTime.title = os.date (casino.ui.dateFormat)
 	end
 	
 	local function SetPlayerLimit ()
@@ -209,7 +209,9 @@ function casino.ui:CreatePdaUI ()
 	function pda:DoSave ()
 		casino.data.name = pda:GetCasinoName ()
 		casino.data.maxPlayers = pda:GetPlayerLimit ()
+		bankTab:DoSave ()
 		adTab:DoSave ()
+		configTab:DoSave ()
 		casino.data:SaveUserSettings ()
 	end
 	
@@ -246,7 +248,7 @@ function casino.ui:CreateSettingsUI ()
 	local pda = casino.ui:CreatePdaUI ();
 	
 	local frame = iup.dialog {
-		iup.pdarootframe {
+		iup.pdasubsubframebg {
 			pda;
 		},
 	    font = casino.ui.font,

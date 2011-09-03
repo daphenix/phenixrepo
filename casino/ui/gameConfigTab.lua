@@ -23,7 +23,7 @@ function casino.ui:CreateGameConfigTab ()
 			-- Game exists
 			button = iup.stationbutton {
 				title = game.name,
-				size = "100x",
+				size = "150x",
 				font = casino.ui.font,
 				action = function ()
 					casino.games:CreateConfigUI (game)
@@ -60,6 +60,9 @@ function casino.ui:CreateGameConfigTab ()
 	}
 	
 	function gameConfigTab:ReloadData ()
+	end
+	
+	function gameConfigTab:DoSave ()
 	end
 	
 	return gameConfigTab

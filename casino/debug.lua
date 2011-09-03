@@ -32,7 +32,7 @@ end
 function casino:RemoveAccount (args)
 	if #args > 1 then
 		local playerName = args [2]
-		casino.bank:CloseAccount (playerName)
+		casino.bank:CloseAccount (playerName, true)
 	else
 		casino:Help ()
 	end
@@ -106,7 +106,7 @@ function casino:DisplayGameStats ()
 	print (string.format ("\127888822Total credits bet into bank: %d\127o", casino.data.totalBet))
 	print (string.format ("\127888822Total credits paid out by bank: %d\127o", casino.data.totalPaidout))
 	print (string.format ("\127888822Current number of players: %d", casino.data.numPlayers))
-	print (string.format ("\127888822Total volume since last reset: %d\127o", casino.data.olume))
+	print (string.format ("\127888822Total volume since last reset: %d\127o", casino.data.volume))
 end
 
 function casino:Status ()
@@ -130,4 +130,6 @@ function casino:Reset ()
 	casino.data.totalBet = 0
 	casino.data.totalPaidout = 0
 	casino.data.volume = 0
+	casino.data.betTransfer = 0
+	casino.data.paidoutTransfer = 0
 end

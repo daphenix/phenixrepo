@@ -9,8 +9,8 @@ casino.games.newgame.version = "0.1"
 --casino.games.newgame.name = "My New Game"
 --casino.games.newgame.isPlayable = true
 
-function casino.games.mygame.GetController (game)
-	local mygame = casino.games:BaseController  (game)
+function casino.games.newgame.GetController (game, config, simulator)
+	local mygame = casino.games:BaseController  (game, config, simulator)
 	
 	-- Use the canPlay property to determine if the game will accept bets before allowing play
 	--mygame.canPlay = true 			-- would allow play immediately.  No bets would be allowed
@@ -39,6 +39,7 @@ function casino.games.mygame.GetController (game)
 	return mygame
 end
 
+-- Use this functino to build a GUI to admin the game
 function casino.games.newgame.CreateConfigUI (game)
 	local saveButton = iup.stationbutton {title="Save", font=casino.ui.font}
 	local cancelButton = iup.stationbutton {title="Cancel", font=casino.ui.font}
@@ -59,6 +60,26 @@ function casino.games.newgame.CreateConfigUI (game)
 			cancelButton; };
 	}
 	
+	-- Use this function to build a simulation to run in order to test game settings
+	function ui:DoSimulation ()
+		-- Set up test
+		local simulator = casino.games:CreateSimulator ("test", 0, {
+			-- put any game specific properties in here
+		})
+		-- Build any additional functions onto the resulting simulator object
+		-- Use the config object to set custom configurations in your game
+		local config = {}
+		local simulation = casino.games:CreateGame ("mygame", "test", config, simulator)
+		
+		-- Run your test by calling the various functions on the simulator as you would in a real game
+		-- e.g. simulation.controller.ProcessRequest ("bet 3")
+		-- or simulations.controller.ProcessRequest ("play")
+		--
+		-- Create a message result from the simulations and output to an information dialog
+		-- e.g. local msg = "Just a Result"
+		-- casino.ui:CreateInfoUI ("My Test", msg)
+	end
+	
 	function pda:DoSave ()
 	end
 	
@@ -74,4 +95,10 @@ function casino.games.newgame.CreateConfigUI (game)
 	end
 	
 	return pda
+end
+
+function casino.games.newgame:GetGameData ()
+end
+
+function casino.games.newgame:SetGameData (data)
 end

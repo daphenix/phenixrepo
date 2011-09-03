@@ -15,6 +15,7 @@ casino.data.refreshDelay = 10000
 casino.data.chatDelay = 350
 casino.data.adDelay = 600000
 casino.data.houseThread = nil
+casino.data.simulatorThread = nil
 casino.data.numPlayers = 0
 casino.data.maxPlayers = 25
 casino.data.tables = {}
@@ -22,12 +23,24 @@ casino.data.messageQueue = {}
 casino.data.waitQueue = {}
 casino.data.bannedList = {}
 casino.data.useAnnouncements = false
+casino.data.announcementType = 1
+casino.data.announcementTypeList = {"CHANNEL", "SYSTEM", "SECTOR"}
+casino.data.announcementChannel = 100
 casino.data.announcements = {}
+casino.data.contactPlayers = false
+casino.data.contactActive = false
+casino.data.playerContactList = {}
 casino.data.wins = 0
 casino.data.losses = 0
 casino.data.totalBet = 0
 casino.data.totalPaidout = 0
 casino.data.volume = 0
+casino.data.profitTrigger = 0
+casino.data.profitTransferAmount = 0
+casino.data.lossTrigger = 0
+casino.data.lossTransferAmount = 0
+casino.data.betTransfer = 0
+casino.data.paidoutTransfer = 0
 
 -- Data Handling
 function casino.data:LoadUserSettings ()
@@ -37,23 +50,45 @@ function casino.data:LoadUserSettings ()
 		banned = {},
 		ads = {},
 		useAds = "false",
+		adType = 1,
+		adChannel = 100,
+		contactPlayers = "false",
+		players = {},
 		adDelay = 600000,
 		wins = 0,
 		losses = 0,
 		totalBet = 0,
 		totalPaidout = 0,
-		volume = 0
+		volume = 0,
+		profitTrigger = 0,
+		profitTransferAmount = 0,
+		lossTrigger = 0,
+		lossTransferAmount = 0,
+		betTransfer = 0,
+		paidoutTransfer = 0,
+		gameData = {}
 	}
 	casino.data.maxPlayers = temp.maxPlayers or 25
 	casino.data.bannedList = temp.banned or {}
 	casino.data.useAnnouncements = temp.useAds == "true"
+	casino.data.announcementType = temp.adType or 1
+	casino.data.announcementChannel = temp.adChannel or 100
 	casino.data.announcements = temp.ads or {}
-	casino.data.adDelay = temp.adDelay or 0
+	casino.data.contactPlayers = temp.contactPlayers == "true"
+	casino.data.playerContactList = temp.players or {}
+	casino.data.adDelay = temp.adDelay or 600000
 	casino.data.wins = temp.wins or 0
 	casino.data.losses = temp.losses or 0
 	casino.data.totalBet = temp.totalBet or 0
 	casino.data.totalPaidout = temp.totalPaidout or 0
 	casino.data.volume = temp.volume or 0
+	casino.data.profitTrigger = temp.profitTrigger or 0
+	casino.data.profitTransferAmount = temp.profitTransferAmount or 0
+	casino.data.lossTrigger = temp.lossTrigger or 0
+	casino.data.lossTransferAmount = temp.lossTransferAmount or 0
+	casino.data.betTransfer = temp.betTransfer or 0
+	casino.data.paidoutTransfer = temp.paidoutTransfer or 0
+	casino.games:SetGameData (temp.gameData or {})
 end
 
 function casino.data:SaveUserSettings ()
@@ -63,12 +98,23 @@ function casino.data:SaveUserSettings ()
 		banned = casino.data.bannedList,
 		ads = casino.data.announcements,
 		useAds = tostring (casino.data.useAnnouncements),
+		adType = casino.data.announcementType,
+		adChannel = casino.data.announcementChannel,
+		contactPlayers = tostring (casino.data.contactPlayers),
+		players = casino.data.playerContactList,
 		adDelay = casino.data.adDelay,
 		wins = casino.data.wins,
 		losses = casino.data.losses,
 		totalBet = casino.data.totalBet,
 		totalPaidout = casino.data.totalPaidout,
-		volume = casino.data.volume
+		volume = casino.data.volume,
+		profitTrigger = casino.data.profitTrigger,
+		profitTransferAmount = casino.data.profitTransferAmount,
+		lossTrigger = casino.data.lossTrigger,
+		lossTransferAmount = casino.data.lossTransferAmount,
+		betTransfer = casino.data.betTransfer,
+		paidoutTransfer = casino.data.paidoutTransfer,
+		gameData = casino.games:GetGameData ()
 	}), charId)
 end
 
@@ -107,11 +153,13 @@ casino.data.initialize = {}
 function casino.data.initialize:OnEvent (event, id)
 	if not casino.data.isInitialized then
 		UnregisterEvent (casino.data.initialize, "PLAYER_ENTERED_GAME")
-		casino.data:LoadUserSettings ()
-		casino.data:LoadAccountInfo ()
 		
 		-- Set up Games
 		casino.games:SetupGames ()
+		
+		-- Load settings and game data
+		casino.data:LoadUserSettings ()
+		casino.data:LoadAccountInfo ()
 		
 		-- Event Registration
 		RegisterEvent (casino.data.logout, "PLAYER_LOGGED_OUT")
@@ -148,16 +196,20 @@ end
 									He will receive his balance
 ]]
 function casino.data:OnEvent (event, data)
-	if event == "CHAT_MSG_PRIVATE" or event == "CHAT_MSG_GROUP" then
+	if event == "CHAT_MSG_PRIVATE" then
 		local key, args = string.match (data.msg:lower (), "^!(%w+)%s*(.*)$")
 		local vars
 		if key == "casino" and args then
-			key, vars = string.match (args, "^(%w+)%s*(%w*)$")
+			key, vars = string.match (args, "^(%w+)%s*(.*)$")
 			if key == "help" and not casino.data.tables [data.name] then
 				casino:ChatHelp (data.name)
 			
-			elseif key == "balance" and casino.bank.trustAccount [data.name] then
-				casino:SendMessage (data.name, string.format ("Current Balance: %d", casino.bank.trustAccount [data.name].balance))
+			elseif key == "balance" then
+				if casino.bank.trustAccount [data.name] then
+					casino:SendMessage (data.name, string.format ("Current Balance: %d", casino.bank.trustAccount [data.name].balance))
+				else
+					casino:SendMessage (data.name, "You don't have an account yet!")
+				end
 				
 			elseif key == "withdraw" then
 				if casino.bank.trustAccount [data.name] then
@@ -177,7 +229,7 @@ function casino.data:OnEvent (event, data)
 				
 			elseif key == "play" then
 				casino.data.volume = casino.data.volume + 1
-				if casino.data.numPlayers < casino.data.maxPlayers then
+				if casino.data.numPlayers < casino.data.maxPlayers and not casino:IsWaiting (data.name) then
 					if casino:IsBanned (data.name) then
 						-- Player is banned
 						casino:SendMessage (data.name, "You have been banned.  You may not play until you have been unbanned")
@@ -189,8 +241,7 @@ function casino.data:OnEvent (event, data)
 					-- We're full up.
 					-- Inform the player he will be placed in a wait queue and his position withn the queue
 					local result = false
-					local queue = "|" .. table.concat (casino.data.waitQueue, "|") .. "|"
-					if not queue:find (data.name) then
+					if not casino:IsWaiting (data.name) then
 						table.insert (casino.data.waitQueue, data.name)
 					else
 						casino:SendMessage (data.name, "You are already in the wait queue.  Please wait")
@@ -213,5 +264,34 @@ function casino.data:OnEvent (event, data)
 			end
 		end
 	end
+end
+
+casino.data.com = {}
+function casino.data.com:OnEvent (event, data)
+	-- Event = PLAYER_ENTERED_SECTOR
+	-- Get player, check if already contacted.  If not, send message, else ignore
+	-- data is character ID.
+	local id = tonumber (data)
+	local factionId = GetPlayerFaction (id)
+	if not factionId then factionId = 0 end
+	if id ~= 0 and id ~= GetCharacterID () and factionId > 0 and factionId < 4 then
+		local totalAds = #casino.data.announcements
+		local playerName = GetPlayerName (id)
+		if totalAds > 0 and not casino.data.playerContactList [playerName] then
+			casino.data.playerContactList [playerName] = {contacted = 1}
+			casino:SendMessage (playerName, casino.data.announcements [math.random (1, totalAds)])
+		end
+	end
+end
+
+-- Debug Handler
+casino.data.debug = {}
+function casino.data.debug:OnEvent (event, data)
+	if event == "CHAT_MSG_GROUP" then
+		event = "CHAT_MSG_PRIVATE"
+	end
+	Timer ():SetTimeout (casino.data.chatDelay, function ()
+		casino.data:OnEvent (event, data)
+	end)
 end
 RegisterEvent (casino.data.initialize , "PLAYER_ENTERED_GAME")

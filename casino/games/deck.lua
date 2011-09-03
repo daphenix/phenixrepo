@@ -2,6 +2,7 @@
 	Deck Class
 ]]
 
+math.random (1, 100)
 function casino.games:CreateCardDeck ()
 	local suits = {"Spades", "Hearts", "Clubs", "Diamonds"}
 	local faces = {"Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"}
@@ -18,7 +19,10 @@ function casino.games:CreateCardDeck ()
 			table.insert (deck, {
 				suit = suit,
 				face = face,
-				value = value
+				value = value,
+				tostring = function ()
+					return string.format ("%s of %s", face, suit)
+				end
 			})
 			value = value + 1
 		end
