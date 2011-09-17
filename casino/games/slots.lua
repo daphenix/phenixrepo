@@ -270,6 +270,7 @@ function casino.games.slots.CreateConfigUI (game, simulateButton)
 		local simulation = casino.games:CreateGame ("slots", "test", config, simulator)
 		
 		-- Run Random Token Test
+		math.randomseed (os.time ())
 		math.random (1, 100)
 		local k
 		local numGames = tonumber (numSimsText.value)

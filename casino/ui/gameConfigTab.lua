@@ -6,7 +6,7 @@
 
 function casino.ui:CreateGameConfigTab ()
 	-- Row Width.  The number of buttons in a rows
-	local rowWidth = 4
+	local rowWidth = 3
 
 	-- Setup holder for buttons
 	local buttonPanel = iup.vbox {

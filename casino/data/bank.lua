@@ -1,5 +1,6 @@
 casino.bank = {}
 casino.bank.trustAccount = {}
+casino.bank.assets = 0
 
 function casino.bank:OpenAccount (playerName, amt, makeAnnouncement)
 	if amt and amt > 0 then
@@ -29,7 +30,6 @@ function casino.bank:OpenAccount (playerName, amt, makeAnnouncement)
 				acct.currentBet = amt
 				acct.balance = acct.balance - amt
 				casino.data.totalBet = casino.data.totalBet + amt
-				casino.data.betTransfer = casino.data.betTransfer + amt
 				if showMessage then acct:SendMessage (string.format ("Your bet of %dc has been registered", amt)) end
 				return true
 			else
@@ -108,6 +108,16 @@ function casino.bank:CreateSimulationAccount (playerName, amt, simulator)
 	end
 	
 	return acct
+end
+
+function casino.bank:GetTotalAssets ()
+	local acct
+	local total = 0
+	for _, acct in pairs (casino.bank.trustAccount) do
+		total = total + acct.balance + acct.currentBet
+	end
+	
+	return total
 end
 
 function casino.bank:CloseAccount (playerName, isAdmin)

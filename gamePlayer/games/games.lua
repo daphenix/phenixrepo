@@ -53,6 +53,7 @@ function gamePlayer.games:CreateBasicUI (launcher, game)
 		content:SetButtonState (flag)
 	end
 	
+	-- Process response returned from Casino server.  No need to use if standalone game
 	function content:ProcessResponse (data)
 		if (hasAccount or balance) and string.find (data:lower (), "balance") then
 			content:GetDepositButton ().title = "Deposit Money"
@@ -70,6 +71,7 @@ function gamePlayer.games:CreateBasicUI (launcher, game)
 	end
 	
 	-- It is strongly advised not to override this function unless highly understood
+	-- Override if standalone game
 	function content:Play ()
 		content:EnableButtons (false)
 		gamePlayer:PlaySound (game, "play", function ()
@@ -86,7 +88,9 @@ function gamePlayer.games:CreateBasicUI (launcher, game)
 	
 	function content:Quit ()
 		content:Stop ()
-		gamePlayer:SendCasinoMessage ("quit")
+		if game.isCasinoGame then
+			gamePlayer:SendCasinoMessage ("quit")
+		end
 		launcher:StartLauncher ()
 	end
 	
@@ -102,6 +106,22 @@ function gamePlayer.games:CreateBasicUI (launcher, game)
 		return quitButton
 	end
 	
+	function content:GetBalance ()
+		if not balance then
+			balance = iup.label {title = "No Account", font = gamePlayer.ui.font, expand = "YES"}
+		end
+		
+		return balance
+	end
+	
+	function content:GetBalanceValue ()
+		if balance then
+			return tonumber (string.match (balance.title, "(%d+)c")) or 0
+		else
+			return 0
+		end
+	end
+	
 	function content:GetBalanceButton ()
 		if not balanceButton then
 			balanceButton = iup.stationbutton {title="Get Balance", font=gamePlayer.ui.font, action=function () gamePlayer:SendCasinoMessage ("balance") end}
@@ -110,9 +130,7 @@ function gamePlayer.games:CreateBasicUI (launcher, game)
 	end
 	
 	function content:GetBalanceBar ()
-		if not balance then
-			balance = iup.label {title = "No Account", font = gamePlayer.ui.font, expand = "YES"}
-		end
+		content:GetBalance ()
 		return iup.hbox {
 				iup.label {title = "Current Balance: ", font = gamePlayer.ui.font, fgcolor = gamePlayer.ui.fgcolor},
 				balance;
@@ -192,7 +210,7 @@ function gamePlayer.games:CreateBasicUI (launcher, game)
 	-- Called to set the state of any game specific buttons
 	function content:SetButtonState (flag) end
 	
-	-- Called when the game instant is first created.  This is done one time only
+	-- Called when the game instance is first created.  This is done one time only
 	function content:Initialize () end
 	
 	-- Called each time the game is started

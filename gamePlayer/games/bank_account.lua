@@ -16,7 +16,7 @@ local sounds = {
 
 -- Game UI
 local function BankAccount (launcher, game)
-	local quitButton = iup.stationbutton {title="Quit", font=gamePlayer.ui.font}
+	local quitButton = game.ui:GetQuitButton ()
 	local info = iup.multiline {
 		size = "600x175",
 		scrollbar = "NO",

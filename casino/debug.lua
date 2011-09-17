@@ -101,10 +101,11 @@ end
 
 function casino:DisplayGameStats ()
 	print ("\n\12700ff00Game Stats\127o");
-	print (string.format ("\127888822Numbers of wins: %d\127o", casino.data.wins))
-	print (string.format ("\127888822Numbers of losses: %d\127o", casino.data.losses))
+	print (string.format ("\127888822Number of wins: %d\127o", casino.data.wins))
+	print (string.format ("\127888822Number of losses: %d\127o", casino.data.losses))
 	print (string.format ("\127888822Total credits bet into bank: %d\127o", casino.data.totalBet))
 	print (string.format ("\127888822Total credits paid out by bank: %d\127o", casino.data.totalPaidout))
+	print (string.format ("\127888822Current Profit: %d\127o", casino.bank.assets - casino.bank:GetTotalAssets ()))
 	print (string.format ("\127888822Current number of players: %d", casino.data.numPlayers))
 	print (string.format ("\127888822Total volume since last reset: %d\127o", casino.data.volume))
 end
@@ -130,6 +131,5 @@ function casino:Reset ()
 	casino.data.totalBet = 0
 	casino.data.totalPaidout = 0
 	casino.data.volume = 0
-	casino.data.betTransfer = 0
-	casino.data.paidoutTransfer = 0
+	casino.bank.assets = casino.bank:GetTotalAssets ()
 end

@@ -17,6 +17,7 @@ function gamePlayer.ui:GetOnOffSetting (flag)
 		return "OFF"
 	end
 end
+dofile ("ui/pda.lua")
 
 function gamePlayer.ui:CreateLauncherUI ()
 	-- Basic Controls
@@ -47,7 +48,9 @@ function gamePlayer.ui:CreateLauncherUI ()
 	}
 	
 	function launcher:StartLauncher ()
-		UnregisterEvent (gamePlayer.data, "CHAT_MSG_PRIVATE")
+		if gamePlayer.data.activeGame.isCasinoGame then
+			UnregisterEvent (gamePlayer.data, "CHAT_MSG_PRIVATE")
+		end
 		launcher.value = topPage
 		gamePlayer.data.activeGame = nil
 	end
@@ -55,12 +58,14 @@ function gamePlayer.ui:CreateLauncherUI ()
 	function launcher:StartGame (game)
 		gamePlayer.data.casinoName = casinoName.value
 		gamePlayer.data.activeGame = game
-		RegisterEvent (gamePlayer.data, "CHAT_MSG_PRIVATE")
+		if game.isCasinoGame then
+			RegisterEvent (gamePlayer.data, "CHAT_MSG_PRIVATE")
+		end
 		launcher.value = game.ui
 		gamePlayer:PlaySound (game, "start", function ()
 			game.ui:Start ()
+			if game.isCasinoGame then gamePlayer:SendCasinoMessage ("balance") end
 		end)
-		if game.isCasinoGame then gamePlayer:SendCasinoMessage ("balance") end
 	end
 	
 	-- Loop through all the discovered games and add buttons for their configurations

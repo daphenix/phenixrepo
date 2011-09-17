@@ -3,7 +3,8 @@
 ]]
 
 math.random (1, 100)
-function casino.games:CreateCardDeck ()
+function casino.games:CreateCardDeck (autoShuffle)
+	autoShuffle = autoShuffle or false
 	local suits = {"Spades", "Hearts", "Clubs", "Diamonds"}
 	local faces = {"Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"}
 	local value, suit, face
@@ -33,22 +34,42 @@ function casino.games:CreateCardDeck ()
 	end
 	
 	function deck:Draw ()
+		if bottom == 0 then return nil end
 		local index = math.random (1, bottom)
 		local card = deck [index]
 		
 		-- Shift all cards up and place newly drawn card to bottom
 		-- Move up bottom
 		local k
-		for k=index, bottom-1 do
+		for k=index, 52 do
 			deck [k] = deck [k+1]
 		end
-		deck [bottom] = card
+		deck [52] = card
 		bottom = bottom - 1
-		if bottom == 0 then
-			deck:Shuffle ()
+		if autoShuffle and bottom == 0 then
+			bottom = 51
 		end
 		
 		return card
+	end
+	
+	function deck:ShowHand (hand, numMask)
+		numMask = numMask or 0
+		local k, card
+		local s = "| "
+		if not hand or #hand == 0 then
+			s = "| No Cards |"
+		else
+			for k, card in ipairs (hand) do
+				if k <= numMask then
+					s = s .. "* | "
+				else
+					s = s .. card:tostring () .. " | "
+				end
+			end
+		end
+		
+		return s
 	end
 	
 	return deck

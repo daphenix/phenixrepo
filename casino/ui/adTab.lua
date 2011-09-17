@@ -15,6 +15,8 @@ function casino.ui:CreateAdTab ()
 	for _, ad in ipairs (casino.data.announcements) do
 		table.insert (adList, ad)
 	end
+	
+	-- First Announcement Channel
 	local channelText = iup.text {value=tostring (casino.data.announcementChannel), font=casino.ui.font, size="40x"}
 	local typeSelection = iup.pdasublist  {
 		font = casino.ui.font,
@@ -27,20 +29,43 @@ function casino.ui:CreateAdTab ()
 	typeSelection [3] = "Sector"
 	typeSelection.value = casino.data.announcementType
 	
-	function typeSelection:action (text, index, state)
-		if state == 1 then
-			if text == "Channel" then
-				channelText.readonly = "NO"
-			else
-				channelText.readonly = "YES"
-			end
-		end
-	end
+	-- Second Announcement Channel
+	local channelText2 = iup.text {value=tostring (casino.data.announcementChannel2), font=casino.ui.font, size="40x"}
+	local typeSelection2 = iup.pdasublist  {
+		font = casino.ui.font,
+		dropdown = "YES",
+		size="100x",
+		visible_items = 4
+	}
+	typeSelection2 [1] = "Channel"
+	typeSelection2 [2] = "System"
+	typeSelection2 [3] = "Sector"
+	typeSelection2.value = casino.data.announcementType2
 
 	local function SetButtonState ()
 		removeButton.active = "NO"
 		if selectedRow > 0 then
 			removeButton.active = "YES"
+		end
+	end
+	
+	local function SetChannelState (obj, text)
+		if text == "Channel" then
+			obj.readonly = "NO"
+		else
+			obj.readonly = "YES"
+		end
+	end
+	
+	function typeSelection:action (text, index, state)
+		if state == 1 then
+			SetChannelState (channelText, text)
+		end
+	end
+	
+	function typeSelection2:action (text, index, state)
+		if state == 1 then
+			SetChannelState (channelText2, text)
 		end
 	end
 
@@ -107,9 +132,17 @@ function casino.ui:CreateAdTab ()
 				iup.fill {size = 5},
 				contactPlayersToggle,
 				iup.fill {},
-				iup.label {title="Type:  ", font=casino.ui.font, fgcolor=casino.ui.fgcolor},
+				iup.label {title="Ch1 Type:  ", font=casino.ui.font, fgcolor=casino.ui.fgcolor},
 				typeSelection,
 				channelText,
+				iup.fill {size = 10};
+				expand="YES"
+			},
+			iup.hbox {
+				iup.fill {},
+				iup.label {title="Ch2 Type:  ", font=casino.ui.font, fgcolor=casino.ui.fgcolor},
+				typeSelection2,
+				channelText2,
 				iup.fill {size = 10};
 				expand="YES"
 			},
@@ -146,6 +179,8 @@ function casino.ui:CreateAdTab ()
 		end
 		casino.data.announcementType = tonumber (typeSelection.value)
 		casino.data.announcementChannel = tonumber (channelText.value) or 100
+		casino.data.announcementType2 = tonumber (typeSelection2.value)
+		casino.data.announcementChannel2 = tonumber (channelText2.value) or 100
 		if casino.data.tablesOpen and contactPlayersToggle.value == "ON" and not casino.data.contactPlayers then
 			RegisterEvent (casino.data.com, "PLAYER_ENTERED_SECTOR")
 			casino.data.contactActive = true
@@ -167,7 +202,11 @@ function casino.ui:CreateAdTab ()
 		adDelay.value = tostring (casino.data.adDelay/1000)
 		useAnnouncementsToggle.value = casino.ui:GetOnOffSetting (casino.data.useAnnouncements)
 		typeSelection.value = casino.data.announcementType
+		SetChannelState (channelText, typeSelection [typeSelection.value])
 		channelText.value = tostring (casino.data.announcementChannel)
+		typeSelection2.value = casino.data.announcementType2
+		SetChannelState (channelText2, typeSelection2 [typeSelection2.value])
+		channelText2.value = tostring (casino.data.announcementChannel2)
 		contactPlayersToggle.value = casino.ui:GetOnOffSetting (casino.data.contactPlayers)
 		adTab:ClearData ()
 		local row, ad

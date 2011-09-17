@@ -9,7 +9,7 @@
 ]]
 
 declare ("casino", {})
-casino.version = "1.2.1"
+casino.version = "1.2.2"
 dofile ("data/data.lua")
 dofile ("games/games.lua")
 dofile ("util.lua")
@@ -79,8 +79,7 @@ function casino:OpenTables (args)
 			casino.data.losses = 0
 			casino.data.totalBet = 0
 			casino.data.totalPaidout = 0
-			casino.data.betTransfer = 0
-			casino.data.paidoutTransfer = 0
+			casino.bank.assets = casino.bank:GetTotalAssets ()
 			
 			-- Make announcement that the casino is open.  Give casino sector
 			if not debugMode then

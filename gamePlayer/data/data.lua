@@ -38,6 +38,9 @@ function gamePlayer.data.initialize:OnEvent (event, id)
 		gksound.GKLoadSound {soundname = "gamePlayer-ambiance", filename = "plugins/gamePlayer/sounds/bar_ambiance.ogg"}
 		gamePlayer.data.sounds ["gamePlayer-ambiance"] = {name="gamePlayer-ambiance", length=35000, file="bar_ambiance.ogg", volume=0.1}
 		
+		-- Build Bar Button set
+		gamePlayer.pda:CreateBarUI (StationChatTab)
+		
 		-- Event Registration
 		RegisterEvent (gamePlayer.data.logout, "PLAYER_LOGGED_OUT")
 		gamePlayer.data.isInitialized = true

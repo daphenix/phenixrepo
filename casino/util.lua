@@ -34,12 +34,18 @@ function casino:SendPublicMessage (msg)
 	table.insert (casino.data.messageQueue, casino:Message (nil, msg, "CHANNEL", 100))
 end
 
-function casino:SendAnnouncement (msg)
+function casino:SendAnnouncement ()
+	local totalAds = #casino.data.announcements
 	table.insert (casino.data.messageQueue,
 						casino:Message (nil,
-							msg,
+							casino.data.announcements [math.random (1, totalAds)],
 							casino.data.announcementTypeList [casino.data.announcementType],
 							casino.data.announcementChannel))
+	table.insert (casino.data.messageQueue,
+						casino:Message (nil,
+							casino.data.announcements [math.random (1, totalAds)],
+							casino.data.announcementTypeList [casino.data.announcementType2],
+							casino.data.announcementChannel2))
 end
 
 function casino:Log (msg)
@@ -118,15 +124,16 @@ function casino:RunBackup ()
 			
 			-- Check for transfers to/from guild bank
 			if casino.data.profitTrigger > 0 and casino.data.lossTrigger > 0 then
-				local profit = casino.data.betTransfer - casino.data.paidoutTransfer
+				local currentAssets = casino.bank:GetTotalAssets ()
+				local profit = casino.bank.assets - currentAssets
 				if profit > casino.data.profitTrigger then
 					Guild.deposit (casino.data.profitTransferAmount, "Casino Profit Transfer")
-					casino.data.betTransfer = 0
-					casino.data.paidoutTransfer = 0
-				elseif profit < casino.data.lossTrigger then
+					casino:Log (string.format ("Casino Profit Transfer: %d", casino.data.profitTransferAmount))
+					casino.bank.assets = currentAssets
+				elseif profit < -1 * casino.data.lossTrigger then
 					Guild.withdraw (casino.data.lossTransferAmount, "Casino Loss Coverage")
-					casino.data.betTransfer = 0
-					casino.data.paidoutTransfer = 0
+					casino:Log (string.format ("Casino Loss Coverage: %d", casino.data.lossTransferAmount))
+					casino.bank.assets = currentAssets
 				end
 			end
 			casino:Log ("Bank backup complete at " .. os.date (casino.ui.dateFormat))
@@ -144,7 +151,7 @@ function casino:RunAnnouncements ()
 			threadBusy = true
 			local totalAds = #casino.data.announcements
 			if casino.data.useAnnouncements and totalAds > 0 then
-				casino:SendAnnouncement (casino.data.announcements [math.random (1, totalAds)])
+				casino:SendAnnouncement ()
 				casino:RunAnnouncements ()
 			end
 			threadBusy = false

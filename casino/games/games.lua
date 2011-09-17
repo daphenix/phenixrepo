@@ -8,6 +8,7 @@ dofile ("games/deck.lua")
 -- All games installable
 dofile ("games/front_desk.lua")
 dofile ("games/slots.lua")
+dofile ("games/blackjack.lua")
 
 casino.games.gamesList = {}
 local availableGames = {}
@@ -41,7 +42,6 @@ function casino.games:GetGameData ()
 end
 
 function casino.games:SetGameData (gameData)
-	print (spickle (gameData))
 	local name, game, data
 	for name, data in pairs (gameData) do
 		game = availableGames [name]
@@ -69,6 +69,29 @@ function casino.games:BaseController (game, config, simulator)
 	-- How to play this game
 	function base:Help (req) end
 	
+	-- Override this function to approve of a bet
+	function base:IsValidBet (amt)
+		if amt == 0 then
+			return false, "You must bet something to play!"
+			
+		elseif game.acct.balance < amt then
+			return false, "You cannot bet more money than you have!"
+			
+		else
+			return true
+		end
+	end
+	
+	-- Override this function for special functionality in betting
+	function base:Bet (amt)
+		local isBet, msg = base:IsValidBet (amt)
+		if isBet then
+			base.canPlay = game.acct:MakeBet (amt, true)
+		elseif not simulator then
+			base:SendMessage (msg)
+		end
+	end
+	
 	-- Used for any additional processing that is needed but not in default key set
 	-- e.g. raise or see in Poker
 	function base:ParseKey (key, args) end
@@ -91,26 +114,39 @@ function casino.games:BaseController (game, config, simulator)
 		end
 	end
 	
-	function base:Win (amt)
+	function base:Win (amt, msg)
 		if not simulator then
-			base:SendMessage (string.format ("You Win %dc!", (game.acct.currentBet + amt)))
+			msg = msg or string.format ("You Win %dc!", (game.acct.currentBet + amt))
+			base:SendMessage (msg)
 			game.acct:Deposit (game.acct.currentBet + amt)
 			casino.data.wins = casino.data.wins + 1
 			casino.data.totalPaidout = casino.data.totalPaidout + game.acct.currentBet + amt
-			casino.data.paidoutTransfer = casino.data.paidoutTransfer + game.acct.currentBet + amt
 			game.acct.currentBet = 0
 		else
 			simulator:Win (game.acct.currentBet + amt)
 		end
 	end
 	
-	function base:Lose ()
+	function base:Lose (msg)
 		if not simulator then
-			base:SendMessage ("You Lose.  Better Luck Next Time")
+			msg = msg or "You Lose.  Better Luck Next Time"
+			base:SendMessage (msg)
 			game.acct.currentBet = 0
 			casino.data.losses = casino.data.losses + 1
 		else
 			simulator:Lose ()
+		end
+	end
+	
+	function base:Tie (msg)
+		if not simulator then
+			msg = msg or "You Tied"
+			base:SendMessage (msg)
+			casino.data.totalBet = casino.data.totalBet - game.acct.currentBet
+			game.acct:Deposit (game.acct.currentBet)
+			game.acct.currentBet = 0
+		else
+			simulator:Tie ()
 		end
 	end
 	
@@ -130,16 +166,22 @@ function casino.games:BaseController (game, config, simulator)
 				base:Help ()
 				
 			elseif key == "quit" or key == "leave" then
-				-- Return any current bet back to the player's bank account
-				game.acct.balance = game.acct.balance + game.acct.currentBet
+				-- Clear any current bet
+				-- This prevents a player from cheating the bank so he doesn't lose money'
+				game.acct.currentBet = 0
 				game.isDone = true
+				
+			elseif key == "bet" and not base.canPlay then
+				local amt = tonumber (args) or 0
+				if amt > 0 then
+					base:Bet (tonumber (args))
+				elseif not simulator then
+					base:SendMessage ("You must make a bet in order to play")
+				end
 				
 			elseif key ~= "play" then
 				base:ParseKey (key, args)
 				if simulator then simulator:ParseKey (key, args) end
-				
-			elseif key == "bet" and not base.canPlay then
-				base.canPlay = game.acct:MakeBet (tonumber (args), true)
 				
 			elseif key == "play" then
 				if base.canPlay then
@@ -216,6 +258,7 @@ function casino.games:CreateSimulator (simulatorName, bankAmt, config)
 	simulator.Lose = function ()
 		simulator.totalLosses = simulator.totalLosses + 1
 	end
+	simulator.Tie = function () end
 	simulator.Play = function (o, args) end
 	simulator.ParseKey = function (o, key, args) end
 	simulator.Reset = function ()
@@ -236,9 +279,7 @@ function casino.games:CreateSimulator (simulatorName, bankAmt, config)
 end
 
 function casino.games:CreateDefaultConfigUI (game)
-	local saveButton = iup.stationbutton {title="Save", font=casino.ui.font}
-	local cancelButton = iup.stationbutton {title="Cancel", font=casino.ui.font}
-	local pda = iup.vbox {
+	local ui = iup.vbox {
 		iup.label {title = game.name .. " v" .. game.version, font=casino.ui.font},
 		iup.fill {size = 15},
 		iup.hbox {
@@ -246,21 +287,16 @@ function casino.games:CreateDefaultConfigUI (game)
 			iup.fill {};
 			expand = "YES"
 		},
-		iup.fill {size = 5},
-		iup.fill {},
-		iup.hbox {
-			iup.fill {},
-			saveButton,
-			cancelButton; };
+		iup.fill {size = 5};
 	}
 	
-	function pda:DoSave ()
+	function ui:DoSave ()
 	end
 	
-	function pda:DoCancel ()
+	function ui:DoCancel ()
 	end
 	
-	return pda
+	return ui
 end
 
 function casino.games:CreateConfigUI (game)

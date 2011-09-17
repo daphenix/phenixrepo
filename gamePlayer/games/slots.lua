@@ -18,7 +18,6 @@ local sounds = {
 
 -- Game UI
 local function SlotsGame (game)
-	local balance = iup.label {title = "0c", font = gamePlayer.ui.font, expand = "YES"}
 	local result = iup.label {title="", font=gamePlayer.ui.font, expand ="YES"}
 	local info = iup.multiline {
 		size = "600x175",
@@ -37,9 +36,9 @@ local function SlotsGame (game)
 		["10c"] = iup.stationradio {title="10c", font=gamePlayer.ui.font, token=10},
 		["100c"] = iup.stationradio {title="100c", font=gamePlayer.ui.font, token=100},
 		["1000c"] = iup.stationradio {title="1000c", font=gamePlayer.ui.font, token=1000},
-		["10000c"] = iup.stationradio {title="10kc", font=gamePlayer.ui.font, token=10000},
-		["100000c"] = iup.stationradio {title="100kc", font=gamePlayer.ui.font, token=100000},
-		["1000000c"] = iup.stationradio {title="1Mc", font=gamePlayer.ui.font, token=1000000}
+		["10kc"] = iup.stationradio {title="10kc", font=gamePlayer.ui.font, token=10000},
+		["100kc"] = iup.stationradio {title="100kc", font=gamePlayer.ui.font, token=100000},
+		["1Mc"] = iup.stationradio {title="1Mc", font=gamePlayer.ui.font, token=1000000}
 	}
 	local tokenSize = iup.radio {
 		iup.vbox {
@@ -47,13 +46,26 @@ local function SlotsGame (game)
 			tokens ["10c"],
 			tokens ["100c"],
 			tokens ["1000c"],
-			tokens ["10000c"],
-			tokens ["100000c"],
-			tokens ["1000000c"];
+			tokens ["10kc"],
+			tokens ["100kc"],
+			tokens ["1Mc"];
 			expand = "YES"
 		},
 		value=tokens ["1c"]
 	}
+	
+	local function SetTokenState ()
+		local balance = game.ui:GetBalanceValue ()
+		local level, value
+		for _, level in pairs (tokens) do
+			value = level.token
+			if balance > 5 * value then
+				level.active = "YES"
+			else
+				level.active = "NO"
+			end
+		end
+	end
 
 	local function GetTokenValue ()
 		return tokenSize.value.token
@@ -114,12 +126,10 @@ local function SlotsGame (game)
 		gamePlayer:SendCasinoMessage ("play slots")
 	end
 	
-	function game.ui:Win (data)
-		gamePlayer:PlaySound (game, "win", function () gamePlayer:SendCasinoMessage ("balance") end)
-	end
-	
-	function game.ui:Lose (data)
-		gamePlayer:SendCasinoMessage ("balance")
+	local fProcess = game.ui.ProcessResponse
+	function game.ui:ProcessResponse (data)
+		fProcess (self, data)
+		SetTokenState ()
 	end
 	
 	local fplay = game.ui.Play
@@ -141,6 +151,14 @@ local function SlotsGame (game)
 			info.value = info.value .. "\n" .. data
 			iup.Refresh (info)
 		end
+	end
+	
+	function game.ui:Win (data)
+		gamePlayer:PlaySound (game, "win", function () gamePlayer:SendCasinoMessage ("balance") end)
+	end
+	
+	function game.ui:Lose (data)
+		gamePlayer:SendCasinoMessage ("balance")
 	end
 	
 	return content

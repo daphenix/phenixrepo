@@ -5,7 +5,7 @@
 ]]
 
 declare ("gamePlayer", {})
-gamePlayer.version = "0.6"
+gamePlayer.version = "0.7"
 gamePlayer.config = "gamePlayer"
 dofile ("data/data.lua")
 dofile ("games/games.lua")

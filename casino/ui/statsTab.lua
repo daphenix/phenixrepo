@@ -9,6 +9,7 @@ function casino.ui:CreateStatsTab ()
 	local lossesLabel = iup.label {title=tostring (casino.data.losses), font=casino.ui.font}
 	local totalBetsLabel = iup.label {title=tostring (casino.data.totalBet), font=casino.ui.font}
 	local totalPayoutsLabel = iup.label {title=tostring (casino.data.totalPaidout), font=casino.ui.font}
+	local profitLabel = iup.label {title=tostring (casino.bank.assets - casino.bank:GetTotalAssets ()), font=casino.ui.font}
 	local volumeLabel = iup.label {title=tostring (casino.data.volume), font=casino.ui.font}
 
 	local statsTab = iup.pdasubframe_nomargin {
@@ -33,6 +34,10 @@ function casino.ui:CreateStatsTab ()
 					totalPayoutsLabel;
 				},
 				iup.hbox {
+					iup.label {title="Current Profit: ", font=casino.ui.font, fgcolor=casino.ui.fgcolor},
+					profitLabel;
+				},
+				iup.hbox {
 					iup.label {title="Volume since Last Reset: ", font=casino.ui.font, fgcolor=casino.ui.fgcolor},
 					volumeLabel;
 				},
@@ -52,6 +57,7 @@ function casino.ui:CreateStatsTab ()
 		lossesLabel.title = tostring (casino.data.losses)
 		totalBetsLabel.title = tostring (casino.data.totalBet)
 		totalPayoutsLabel.title = tostring (casino.data.totalPaidout)
+		profitLabel.title = tostring (casino.bank.assets - casino.bank:GetTotalAssets ())
 		volumeLabel.title = tostring (casino.data.volume)
 	end
 	

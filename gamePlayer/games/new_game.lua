@@ -5,6 +5,7 @@
 gamePlayer.games.newgame = {}
 gamePlayer.games.newgame.version = "0.1"
 gamePlayer.games.newgame.name = "My New Game Player"
+gamePlayer.games.newgame.gameName = "newgame"
 gamePlayer.games.newgame.isPlayable = false  -- true to cause game plugin to load a startup button in launcher
 gamePlayer.games.newgame.isCasinoGame = true  -- true if interacting with Casino plugin
 gamePlayer.games.newgame.soundDir = "newgame/"
