@@ -2,9 +2,9 @@
 	Helpful Utilities
 ]]
 
-function bartenderChatHelp (playerName)
+function bartender:ChatHelp (playerName)
 	messaging:Send (playerName, "Bartender Basic Conversation:")
-	messaging:Send (playerName, "help: Get basic game help")
+	messaging:Send (playerName, "help: This list")
 	messaging:Send (playerName, "bye: Stop talking to the Bartender")
 end
 

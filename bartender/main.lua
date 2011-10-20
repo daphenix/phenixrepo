@@ -23,29 +23,45 @@ function bartender:Help ()
 	purchaseprint ("\tstop - Closes bar and deactivates bartender")
 end
 
-function bartender:OpenBar ()
-	print ("Starting Bartender")
-	if not bartender.data.thread or coroutine.status (bartender.data.thread) == "dead" then
-		-- Create thread
-		bartender.data.thread = coroutine.create (bartender.RunConversations)
-	end
-	casino.bank:Open (bartender)
-	RegisterEvent (bartender.data, "CHAT_MSG_BAR")
-	RegisterEvent (bartender.data.pay, "BANK_DEPOSIT")
-	bartender.data.barOpen = true
-	if coroutine.status (bartender.data.thread) == "suspended" then
-		messaging:Start (bartender)
-		bartender:RunThread ()
+local debugMode = false
+function bartender:OpenBar (args)
+	if not bartender.data.barOpen then
+		print ("Starting Bartender")
+		debugMode = (args [2] == "true")
+		if not bartender.data.thread or coroutine.status (bartender.data.thread) == "dead" then
+			-- Create thread
+			bartender.data.thread = coroutine.create (bartender.RunConversations)
+		end
+		
+		-- Start Plugin Threads
+		casino.bank:Open (bartender)
+		if debugMode then
+			RegisterEvent (bartender.data.debug, "CHAT_MSG_GROUP")
+		else
+			RegisterEvent (bartender.data, "CHAT_MSG_BAR")
+		end
+		RegisterEvent (bartender.data.pay, "BANK_DEPOSIT")
+		bartender.data.barOpen = true
+		if coroutine.status (bartender.data.thread) == "suspended" then
+			messaging:Start (bartender)
+			bartender:RunThread ()
+		end
 	end
 end
 
 function bartender:CloseBar ()
-	print ("Stopping Bartender")
-	bartender.data.barOpen = false
-	casino.bank:Close (bartender)
-	messaging:Stop (bartender)
-	UnregisterEvent (bartender.data, "CHAT_MSG_BAR")
-	UnregisterEvent (bartender.data.pay, "BANK_DEPOSIT")
+	if bartender.data.barOpen then
+		print ("Stopping Bartender")
+		bartender.data.barOpen = false
+		casino.bank:Close (bartender)
+		messaging:Stop (bartender)
+		if debugMode then
+			UnregisterEvent (bartender.data.debug, "CHAT_MSG_GROUP")
+		else
+			UnregisterEvent (bartender.data, "CHAT_MSG_BAR")
+		end
+		UnregisterEvent (bartender.data.pay, "BANK_DEPOSIT")
+	end
 end
 
 bartender.arguments = {

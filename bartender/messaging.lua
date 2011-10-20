@@ -10,18 +10,23 @@ messaging.chatDelay = 350
 local users = {}
 local numUsers = 0
 
-function messaging:Split (s, d)
-	print ("splitting " .. s)
+function messaging:Split (s, d, trim)
 	s = s or ""
 	d = d or " "
+	trim = trim or false
 	local words = {}
 	s = s .. d
-	local pattern = "([%w]+)%p*" .. d
+	local pattern = "[^" .. d .. "]+"
+	
 	local elem
 	for elem, _ in string.gmatch (s, pattern) do
-		table.insert (words, elem)
+		if trim then
+			table.insert (words, string.match (elem, "%P+"))
+		else
+			table.insert (words, elem)
+		end
 	end
-	print (string.format ("Returning %d words", #words))
+	
 	return words
 end
 
@@ -51,20 +56,24 @@ function messaging:Message (playerName, msg, type, channel)
 		player = playerName,
 		msg = msg,
 		type = type,
-		Send = function ()
-			SendChat (msg, type, playerName)
-		end
+		Send = function () SendChat (msg, type, playerName) end
 	}
 	
 	return message
 end
 
 function messaging:Send (playerName, msg, type, channel)
-	table.insert (messaging.queue, messaging:Message (playerName, msg, type, channel))
+	local line
+	for _, line in ipairs (messaging:Split (msg, "//")) do
+		table.insert (messaging.queue, messaging:Message (playerName, line, type, channel))
+	end
 end
 
 function messaging:SendPublicMessage (msg)
-	table.insert (messaging.queue, messaging:Message (nil, msg, "CHANNEL", 100))
+	local line
+	for _, line in ipairs (messaging:Split (msg, "//")) do
+		table.insert (messaging.queue, messaging:Message (nil, line, "CHANNEL", 100))
+	end
 end
 
 -- Thread management

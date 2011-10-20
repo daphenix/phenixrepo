@@ -1,6 +1,4 @@
 bartender.data = {}
-dofile ("data/personalities.lua")
-dofile ("data/vocabulary.lua")
 
 bartender.data.id = 314159265359
 bartender.data.settingsOffset = 102
@@ -10,6 +8,7 @@ bartender.data.delay = 25
 bartender.data.chunkSize = 10
 bartender.data.stepCounter = 0
 bartender.data.conversations = {}
+bartender.data.users = {}
 bartender.data.thread = nil
 
 -- Data Handling
@@ -56,17 +55,13 @@ end
 
 -- Main Event Handler
 function bartender.data:OnEvent (event, data)
-	print ("Event: " .. event)
 	if event == "CHAT_MSG_BAR" then
 		local key, args = string.match (data.msg:lower (), "^!(%w+)%s*(.*)$")
 		local words
 		if (key == "bartender" or key == "bt") and args then
-			print (bartender.data.conversations [data.name])
 			if bartender.data.conversations [data.name] then
-				print ("Continuing Conversation")
 				bartender.data.conversations [data.name].request = args
 			else
-				print ("Starting Conversation")
 				local parser = bartender.chat:CreateParser (data.name)
 				bartender.data.conversations [data.name] = parser
 				parser:Start ()
@@ -85,13 +80,13 @@ function bartender.data.pay:OnEvent (event, data)
 end
 
 -- Debug Handler
-casino.data.debug = {}
+bartender.data.debug = {}
 function bartender.data.debug:OnEvent (event, data)
 	if event == "CHAT_MSG_GROUP" then
-		event = "CHAT_MSG_PRIVATE"
+		event = "CHAT_MSG_BAR"
 	end
 	Timer ():SetTimeout (messaging.chatDelay, function ()
-		casino.data:OnEvent (event, data)
+		bartender.data:OnEvent (event, data)
 	end)
 end
 RegisterEvent (bartender.data.initialize , "PLAYER_ENTERED_GAME")
