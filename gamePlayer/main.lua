@@ -9,6 +9,9 @@ gamePlayer.version = "0.7"
 gamePlayer.config = "gamePlayer"
 dofile ("data/data.lua")
 dofile ("games/games.lua")
+if not messaging then
+	dofile ("messaging.lua")
+end
 dofile ("util.lua")
 dofile ("ui/ui.lua")
 

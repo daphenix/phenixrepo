@@ -129,7 +129,7 @@ function casino.games.blackjack.GetController (game, config, simulator)
 		blackjack:SendMessage ("Start Play: !casino play")
 		blackjack:SendMessage ("Show Hand: !casino show")
 		blackjack:SendMessage ("Get another card: !casino hit")
-		blackjack:SendMessage ("Stand on current hand: !casino stand")
+		blackjack:SendMessage ("Stand on current hand: !casino stand or !casino stay")
 		blackjack:SendMessage ("Leave Table: !casino quit")
 	end
 	
@@ -149,7 +149,7 @@ function casino.games.blackjack.GetController (game, config, simulator)
 					Lose ()
 				end
 				
-			elseif key == "stand" then
+			elseif key == "stand" or key == "stay" then
 				DealerPlay ()
 				blackjack:SendMessage (string.format ("Dealer Hand: %s = %d", deck:ShowHand (dealer), Value (dealer)))
 				blackjack:SendMessage (string.format ("Player Hand: %s = %d", deck:ShowHand (player), Value (player)))
@@ -186,7 +186,7 @@ function casino.games.blackjack.GetController (game, config, simulator)
 			
 			-- Need to check for blackjack win
 			if CheckBlackjack (player) and CheckBlackjack (dealer) then
-				blackjack:SendMessage (string.format ("Dealer Hand: %s", deck:ShowHand (dealer)))
+				blackjack:SendMessage (string.format ("Dealer Hand: %s = %d", deck:ShowHand (dealer), Value (dealer)))
 				blackjack:SendMessage (string.format ("Player Hand: %s = %d", deck:ShowHand (player), Value (player)))
 				Push ()
 			elseif CheckBlackjack (player) then
@@ -194,7 +194,7 @@ function casino.games.blackjack.GetController (game, config, simulator)
 				blackjack:SendMessage (string.format ("Player Hand: %s = %d", deck:ShowHand (player), Value (player)))
 				WinInitial ()
 			elseif CheckBlackjack (dealer) then
-				blackjack:SendMessage (string.format ("Dealer Hand: %s", deck:ShowHand (dealer)))
+				blackjack:SendMessage (string.format ("Dealer Hand: %s = %d", deck:ShowHand (dealer), Value (dealer)))
 				blackjack:SendMessage (string.format ("Player Hand: %s = %d", deck:ShowHand (player), Value (player)))
 				Lose ()
 			else

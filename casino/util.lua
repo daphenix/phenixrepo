@@ -2,36 +2,9 @@
 	Casino Thread handling and utlities
 ]]
 
-local threadBusy = false
-
-function casino:Message (playerName, msg, type, channel)
-	type = type or "PRIVATE"
-	if type == "CHANNEL" and not playerName then
-		playerName = channel
-	end
-	local message = {
-		player = playerName,
-		msg = msg,
-		type = type,
-		Send = function ()
-			SendChat (msg, type, playerName)
-		end
-	}
-	
-	return message
-end
-
 function casino:Print (msg)
 	local m = string.format ("\12700ff00%s\127o", msg)
 	print (m)
-end
-
-function casino:SendMessage (playerName, msg, type, channel)
-	table.insert (casino.data.messageQueue, casino:Message (playerName, msg, type, channel))
-end
-
-function casino:SendPublicMessage (msg)
-	table.insert (casino.data.messageQueue, casino:Message (nil, msg, "CHANNEL", 100))
 end
 
 function casino:SendAnnouncement ()
@@ -55,14 +28,14 @@ function casino:Log (msg)
 end
 
 function casino:ChatHelp (playerName)
-	casino:SendMessage (playerName, "Casino Commands:")
-	casino:SendMessage (playerName, "help: Get help from the casino or from the game")
-	casino:SendMessage (playerName, "balance: Get your current bank balance")
-	casino:SendMessage (playerName, "withdraw <amount>: Withdraw funds from your bank account (must be in the casino sector)")
-	casino:SendMessage (playerName, "close: Close out your bank account and receive all remaining funds (must be in the casino sector)")
-	casino:SendMessage (playerName, "play <gameName>: Start a new game")
-	casino:SendMessage (playerName, "play: Play an existing game")
-	casino:SendMessage (playerName, "We have available: " .. table.concat (casino.games.gamesList, ", "))
+	casino.messaging:Send (playerName, "Casino Commands:")
+	casino.messaging:Send (playerName, "help: Get help from the casino or from the game")
+	casino.messaging:Send (playerName, "balance: Get your current bank balance")
+	casino.messaging:Send (playerName, "withdraw <amount>: Withdraw funds from your bank account (must be in the casino sector)")
+	casino.messaging:Send (playerName, "close: Close out your bank account and receive all remaining funds (must be in the casino sector)")
+	casino.messaging:Send (playerName, "play <gameName>: Start a new game")
+	casino.messaging:Send (playerName, "play: Play an existing game")
+	casino.messaging:Send (playerName, "We have available: " .. table.concat (casino.games.gamesList, ", "))
 end
 
 function casino:IsWaiting (playerName)
@@ -77,7 +50,7 @@ end
 function casino:DoBan (playerName, reason)
 	if not casino:IsBanned (playerName) then
 		casino.data.bannedList [playerName] = reason
-		casino:SendMessage (playerName, "You have been banned from playing.  Contact a PA official to appeal")
+		casino.messaging:Send (playerName, "You have been banned from playing.  Contact a PA official to appeal")
 		if casino.data.tables [playerName] then
 			casino.data.tables [playerName].isDone = true
 		end
@@ -87,7 +60,7 @@ end
 function casino:DoUnban (playerName)
 	if casino:IsBanned (playerName) then
 		casino.data.bannedList [playerName] = nil
-		casino:SendMessage (playerName, "You have been unbanned.  Please feel free to play")
+		casino.messaging:Send (playerName, "You have been unbanned.  Please feel free to play")
 	end
 end
 
@@ -103,7 +76,7 @@ function casino:RunPlayerProcesses ()
 				casino.data.tables [p.player] = nil
 				casino.data.numPlayers = casino.data.numPlayers - 1
 				if #casino.data.waitQueue > 0 then
-					casino:SendMessage (casino.data.waitQueue [1], "A spot has opened in the Casino!")
+					casino.messaging:Send (casino.data.waitQueue [1], "A spot has opened in the Casino!")
 					table.remove (casino.data.waitQueue, 1)
 				end
 			else
@@ -118,7 +91,7 @@ end
 function casino:RunBackup ()
 	Timer ():SetTimeout (casino.data.backupDelay, function ()
 		if casino.data.tablesOpen then
-			threadBusy = true
+			messaging.threadBusy = true
 			-- Make Backup of Bank Records
 			casino.data:SaveAccountInfo ()
 			
@@ -139,7 +112,7 @@ function casino:RunBackup ()
 			casino:Log ("Bank backup complete at " .. os.date (casino.ui.dateFormat))
 			casino.data:SaveLog ()
 			casino:RunBackup ()
-			threadBusy = false
+			messaging.threadBusy = false
 		end
 	end)
 end
@@ -148,27 +121,13 @@ function casino:RunAnnouncements ()
 	Timer ():SetTimeout (casino.data.adDelay, function ()
 		if casino.data.tablesOpen then
 			-- Get an ad from the list and create a message
-			threadBusy = true
+			messaging.threadBusy = true
 			local totalAds = #casino.data.announcements
 			if casino.data.useAnnouncements and totalAds > 0 then
 				casino:SendAnnouncement ()
 				casino:RunAnnouncements ()
 			end
-			threadBusy = false
-		end
-	end)
-end
-
-function casino:RunMessageQueue ()
-	Timer ():SetTimeout (casino.data.chatDelay, function ()
-		if not threadBusy and casino.data.tablesOpen then
-			threadBusy = true
-			if #casino.data.messageQueue > 0 then
-				casino.data.messageQueue [1]:Send ()
-				table.remove (casino.data.messageQueue, 1)
-			end
-			casino:RunMessageQueue ()
-			threadBusy = false
+			messaging.threadBusy = false
 		end
 	end)
 end
@@ -178,7 +137,7 @@ function casino:RunThreads ()
 	if casino.data.tablesOpen or casino.data.simulatorThread  then
 		Timer ():SetTimeout (casino.data.delay, function ()
 			-- Determine which thread to run
-			if not threadBusy then
+			if not messaging.threadBusy then
 				if runHouseThread and casino.data.houseThread and coroutine.status (casino.data.houseThread):lower () == "suspended" then
 					runHouseThread = true
 					if casino.data.simulatorThread then

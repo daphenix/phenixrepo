@@ -120,7 +120,7 @@ function casino.ui:CreateWaitQueueTab (bannedTab)
 	
 	function notifyPlayerButton.action ()
 		local playerName = matrix:getcell (selectedRow, 1)
-		casino:SendMessage (playerName, "A spot has opened in the Casino!")
+		casino.messaging:Send (playerName, "A spot has opened in the Casino!")
 		table.remove (casino.data.waitQueue, selectedRow)
 		selectedRow = 0
 		waitQueueTab:ReloadData ()

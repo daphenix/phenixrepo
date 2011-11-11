@@ -11,18 +11,19 @@ casino.games.frontdesk.isPlayable = false
 	
 -- Random Responses
 local responses = {
-	"I know you are, but what am I?",
-	"What makes you think I would do that for you?",
-	"Isn't there someone else you could talk to?",
-	"Security!!",
-	"You don't have many friends, do you?",
-	"Just go away already!",
 	"We really DO have some nice games here.  Why don't you play one?",
-	"Maybe you should go bug the Bartender instead?"
+	"Maybe you should go bug the Bartender instead?",
+	"Isn't there someone else you could talk to?",
+	"What makes you think I would do that for you?",
+	"Security!!",
+	"Just go away already!"
 }
 
 -- Random Insults
 local insults = {
+	"You don't have many friends, do you?",
+	"I know you are, but what am I?",
+	"Didn't your mother ever warn you about your face freezing like that?  No wait, it's an improvement!"
 }
 
 -- Clerk Data

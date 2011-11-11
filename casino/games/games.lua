@@ -108,9 +108,10 @@ function casino.games:BaseController (game, config, simulator)
 		
 	*****************************************************]]
 
-	function base:SendMessage (msg)
+	function base:SendMessage (msg, playerName)
 		if not simulator then
-			table.insert (casino.data.messageQueue, casino:Message (game.player, msg))
+			local name = playerName or game.player
+			casino.messaging:Send (name, msg)
 		end
 	end
 	

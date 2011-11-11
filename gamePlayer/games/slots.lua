@@ -32,13 +32,13 @@ local function SlotsGame (game)
 	
 	-- Radio group for token size
 	local tokens = {
-		["1c"] = iup.stationradio {title="1c", font=gamePlayer.ui.font, token=1},
-		["10c"] = iup.stationradio {title="10c", font=gamePlayer.ui.font, token=10},
-		["100c"] = iup.stationradio {title="100c", font=gamePlayer.ui.font, token=100},
-		["1000c"] = iup.stationradio {title="1000c", font=gamePlayer.ui.font, token=1000},
-		["10kc"] = iup.stationradio {title="10kc", font=gamePlayer.ui.font, token=10000},
-		["100kc"] = iup.stationradio {title="100kc", font=gamePlayer.ui.font, token=100000},
-		["1Mc"] = iup.stationradio {title="1Mc", font=gamePlayer.ui.font, token=1000000}
+		["1c"] = iup.stationradio {title="1c", font=gamePlayer.ui.font, token=1, active="NO"},
+		["10c"] = iup.stationradio {title="10c", font=gamePlayer.ui.font, token=10, active="NO"},
+		["100c"] = iup.stationradio {title="100c", font=gamePlayer.ui.font, token=100, active="NO"},
+		["1000c"] = iup.stationradio {title="1000c", font=gamePlayer.ui.font, token=1000, active="NO"},
+		["10kc"] = iup.stationradio {title="10kc", font=gamePlayer.ui.font, token=10000, active="NO"},
+		["100kc"] = iup.stationradio {title="100kc", font=gamePlayer.ui.font, token=100000, active="NO"},
+		["1Mc"] = iup.stationradio {title="1Mc", font=gamePlayer.ui.font, token=1000000, active="NO"}
 	}
 	local tokenSize = iup.radio {
 		iup.vbox {
@@ -95,7 +95,7 @@ local function SlotsGame (game)
 						expand="YES"
 					},
 					iup.fill {size = 10},
-					iup.label {title="Info:", font=gamePlayer.ui.font, fgcolor=gamePlayer.ui.fgcolor},
+					iup.label {title="Information:", font=gamePlayer.ui.font, fgcolor=gamePlayer.ui.fgcolor},
 					info;
 					expand="YES"
 				};
@@ -117,12 +117,14 @@ local function SlotsGame (game)
 	
 	function game.ui:Initialize ()
 		gamePlayer:LoadSounds (game, sounds)
+		game.ui.state ["bet"] = {active={game.ui:GetPlayButton (), SetTokenState}}
 	end
 	
 	function game.ui:Start ()
 		result.title = ""
 		info.value = ""
 		iup.Refresh (content)
+		game.ui.nextState = "play"
 		gamePlayer:SendCasinoMessage ("play slots")
 	end
 	
@@ -158,7 +160,7 @@ local function SlotsGame (game)
 	end
 	
 	function game.ui:Lose (data)
-		gamePlayer:SendCasinoMessage ("balance")
+		gamePlayer:PlaySound (game, "lose", function () gamePlayer:SendCasinoMessage ("balance") end)
 	end
 	
 	return content

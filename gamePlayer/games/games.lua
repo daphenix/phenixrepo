@@ -4,9 +4,12 @@
 
 gamePlayer.games = {}
 
+dofile ("games/deck.lua")
+
 -- All games installable (order here defines the order of their launch buttons)
 dofile ("games/bank_account.lua")
 dofile ("games/slots.lua")
+dofile ("games/blackjack.lua")
 
 gamePlayer.games.gamesList = {}
 
@@ -18,43 +21,103 @@ function gamePlayer.games:SetupGames ()
 		if type (game) == "table" and game.isPlayable then
 			table.insert (gamePlayer.games.gamesList, game)
 		end
+		table.sort (gamePlayer.games.gamesList, function (a, b)
+			if a.name == "Bank Account" then return true
+			elseif b.name == "Bank Account" then return false
+			else return a.name < b.name
+			end
+		end)
 	end
 end
 
 function gamePlayer.games:CreateBasicUI (launcher, game)
 	local content = iup.vbox {}
-	local playButton = iup.stationbutton {title="Play", font=gamePlayer.ui.font}
+	content.currentState = nil
+	content.nextState = nil
+	content.lastResponse = ""
+	
+	local playButton = iup.stationbutton {title="Play", font=gamePlayer.ui.font, active="NO"}
 	local betButton = iup.stationbutton {title="Bet", font=gamePlayer.ui.font}
+	local betText = iup.text {value="", size="75x"}
 	local quitButton = iup.stationbutton {title="Quit", font=gamePlayer.ui.font}
+	local helpButton = iup.stationbutton {title="Help", font=gamePlayer.ui.font}
 	local balance, transaction, balanceButton, depositButton, withdrawButton, closeAcctButton
 	local hasAccount = false
+	local betMade = false
+	local startedPlay = false
+	
+	function content:SetInitialState ()
+		betMade = false
+		startedPlay = false
+	end
 	
 	function content:SetMainContent (ui)
 		iup.Append (content, ui)
 	end
 	
-	function content:EnableButtons (flag)
-		if flag then flag = "YES"
-		else flag = "NO"
-		end
+	--
+	--	state engine properties
+	--
+	--	active = the list of items to activate.  If one is a function, call that function with the settable state
+	--	inactive = the list of items to deactivate, call if function
+	--	entranceTest = if present, this function must return true in order to proceed to the desired set state
+	--	exitTest = if present, this function must return true in order to leave the current state
+	--
+	content.state = {
+		["start"] = {active={}},
+		["bet"] = {active={betButton}},
+		["play"] = {active={playButton}},
+		["win"] = {active={}},
+		["lose"] = {active={}}
+	}
+	
+	function content:DisableButtons ()
 		playButton.active = "NO"
 		betButton.active = "NO"
 		if balanceButton then balanceButton.active = "NO" end
 		if withdrawButton then withdrawButton.active = "NO" end
 		if closeAcctButton then closeAcctButton.active = "NO" end
+		content:DisableGameButtons (hasAccount)
+	end
+	
+	function content:SetState (state)
+		content:DisableButtons ()
 		if hasAccount then
-			playButton.active = flag
-			betButton.active = flag
-			if balanceButton then balanceButton.active = flag end
-			if withdrawButton then withdrawButton.active = flag end
-			if closeAcctButton then closeAcctButton.active = flag end
+			if balanceButton then balanceButton.active = "YES" end
+			if withdrawButton then withdrawButton.active = "YES" end
+			if closeAcctButton then closeAcctButton.active = "YES" end
 		end
-		quitButton.active = flag
-		content:SetButtonState (flag)
+		if not content.currentState or not content.state [content.currentState].exitTest or content.state [content.currentState].exitTest () then
+			if content.state [state] and (not content.state [state].entranceTest or content.state [state].entranceTest ()) then
+				content.currentState = state
+			end
+		end
+		if content.state [content.currentState] then
+			local item
+			if content.state [content.currentState].active then
+				for _, item in ipairs (content.state [content.currentState].active) do
+					if type (item) == "function" then
+						item (content.currentState)
+					else
+						item.active = "YES"
+					end
+				end
+			end
+			if content.state [content.currentState].inactive then
+				for _, item in ipairs (content.state [content.currentState].inactive) do
+					if type (item) == "function" then
+						item (content.currentState)
+					else
+						item.active = "NO"
+					end
+				end
+			end
+		end
 	end
 	
 	-- Process response returned from Casino server.  No need to use if standalone game
 	function content:ProcessResponse (data)
+		content.lastResponse = data
 		if (hasAccount or balance) and string.find (data:lower (), "balance") then
 			content:GetDepositButton ().title = "Deposit Money"
 			local acct = string.match (data, "Current Balance: (%d+)") or "0"
@@ -62,18 +125,26 @@ function gamePlayer.games:CreateBasicUI (launcher, game)
 			hasAccount = true
 			iup.Refresh (balance)
 		elseif string.find (data:lower (), "win") then
+			content:SetState ("win")
 			content:Win (data)
+			content.nextState = "bet"
 		elseif string.find (data:lower (), "lose") then
+			content:SetState ("lose")
 			content:Lose (data)
+			content.nextState = "bet"
 		end
 		content:Parse (data)
-		content:EnableButtons (true)
+		if content.nextState ~= content.currentState then
+			content:SetState (content.nextState)
+		else
+			content:SetState (content.currentState)
+		end
 	end
 	
 	-- It is strongly advised not to override this function unless highly understood
 	-- Override if standalone game
 	function content:Play ()
-		content:EnableButtons (false)
+		content:DisableButtons ()
 		gamePlayer:PlaySound (game, "play", function ()
 			if game.isCasinoGame then
 				gamePlayer:SendCasinoMessage ("play")
@@ -82,8 +153,15 @@ function gamePlayer.games:CreateBasicUI (launcher, game)
 	end
 	
 	function content:Bet (amt)
-		content:EnableButtons (false)
-		gamePlayer:PlaySound (game, "bet", function () gamePlayer:SendCasinoMessage (string.format ("bet %d", amt)) end)
+		if tonumber (betText.value) then
+			content:DisableButtons ()
+			gamePlayer:PlaySound (game, "bet", function ()
+				content.nextState = "play"
+				if game.isCasinoGame then
+					gamePlayer:SendCasinoMessage (string.format ("bet %d", amt))
+				end
+			end)
+		end
 	end
 	
 	function content:Quit ()
@@ -102,8 +180,24 @@ function gamePlayer.games:CreateBasicUI (launcher, game)
 		return betButton
 	end
 	
+	function content:GetBetText ()
+		return betText
+	end
+	
+	function content:GetBetValue ()
+		return tonumber (betText.value)
+	end
+	
+	function content:SetBetValue (amt)
+		betText.value = amt
+	end
+	
 	function content:GetQuitButton ()
 		return quitButton
+	end
+	
+	function content:GetHelpButton ()
+		return helpButton
 	end
 	
 	function content:GetBalance ()
@@ -197,24 +291,34 @@ function gamePlayer.games:CreateBasicUI (launcher, game)
 	end
 	
 	function betButton.action ()
-		content:Bet ()
+		content:Bet (tonumber (betText.value))
 	end
 	
 	function quitButton.action ()
 		content:Quit ()
 	end
 	
+	function helpButton.action ()
+		if game.isCasinoGame then
+			gamePlayer:SendCasinoMessage ("help")
+		end
+		content:Help ()
+	end
+	
 	-- Override these functions per game requirements
 	-- They should be overridden with game.ui:FunctionName
 	
 	-- Called to set the state of any game specific buttons
-	function content:SetButtonState (flag) end
+	function content:DisableGameButtons (hasAccount) end
 	
 	-- Called when the game instance is first created.  This is done one time only
 	function content:Initialize () end
 	
 	-- Called each time the game is started
 	function content:Start () end
+	
+	-- Called for local game help
+	function content:Help () end
 	
 	-- Used to handle inbound data from the server
 	function content:Parse (data) end

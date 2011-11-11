@@ -3,8 +3,9 @@
 ]]
 
 math.random (1, 100)
-function casino.games:CreateCardDeck (autoShuffle)
+function casino.games:CreateCardDeck (autoShuffle, showIndex)
 	autoShuffle = autoShuffle or false
+	showIndex = showIndex or false
 	local suits = {"Spades", "Hearts", "Clubs", "Diamonds"}
 	local faces = {"Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"}
 	local value, suit, face
@@ -56,15 +57,17 @@ function casino.games:CreateCardDeck (autoShuffle)
 	function deck:ShowHand (hand, numMask)
 		numMask = numMask or 0
 		local k, card
-		local s = "| "
+		local s = "|"
 		if not hand or #hand == 0 then
 			s = "| No Cards |"
 		else
 			for k, card in ipairs (hand) do
 				if k <= numMask then
-					s = s .. "* | "
+					s = s .. " * |"
+				elseif showIndex then
+					s = string.format ("%s %d) %s |", s, k, card.tostring ())
 				else
-					s = s .. card:tostring () .. " | "
+					s = string.format ("%s %s |", s, card.tostring ())
 				end
 			end
 		end

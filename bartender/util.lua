@@ -3,9 +3,9 @@
 ]]
 
 function bartender:ChatHelp (playerName)
-	messaging:Send (playerName, "Bartender Basic Conversation:")
-	messaging:Send (playerName, "help: This list")
-	messaging:Send (playerName, "bye: Stop talking to the Bartender")
+	bartender.messaging:Send (playerName, "Bartender Basic Conversation:")
+	bartender.messaging:Send (playerName, "help: This list")
+	bartender.messaging:Send (playerName, "bye: Stop talking to the Bartender")
 end
 
 -- Thread management

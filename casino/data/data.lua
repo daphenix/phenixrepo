@@ -12,7 +12,6 @@ casino.data.chunkSize = 10
 casino.data.stepCounter = 0
 casino.data.backupDelay = 300000
 casino.data.refreshDelay = 10000
-casino.data.chatDelay = 350
 casino.data.adDelay = 600000
 casino.data.houseThread = nil
 casino.data.simulatorThread = nil
@@ -197,7 +196,7 @@ local function SetupGame (playerName, vars)
 	if casino.data.numPlayers < casino.data.maxPlayers and not casino:IsWaiting (playerName) then
 		if casino:IsBanned (playerName) then
 			-- Player is banned
-			casino:SendMessage (playerName, "You have been banned.  You may not play until you have been unbanned")
+			casino.messaging:Send (playerName, "You have been banned.  You may not play until you have been unbanned")
 		else
 			-- Create a new one
 			casino.data.tables [playerName] = casino.games:CreateGame (vars, playerName)
@@ -209,7 +208,7 @@ local function SetupGame (playerName, vars)
 		if not casino:IsWaiting (playerName) then
 			table.insert (casino.data.waitQueue, playerName)
 		else
-			casino:SendMessage (playerName, "You are already in the wait queue.  Please wait")
+			casino.messaging:Send (playerName, "You are already in the wait queue.  Please wait")
 		end
 	end
 end
@@ -236,9 +235,9 @@ function casino.data:OnEvent (event, data)
 			
 			elseif key == "balance" then
 				if casino.bank.trustAccount [data.name] then
-					casino:SendMessage (data.name, string.format ("Current Balance: %d", casino.bank.trustAccount [data.name].balance))
+					casino.messaging:Send (data.name, string.format ("Current Balance: %d", casino.bank.trustAccount [data.name].balance))
 				else
-					casino:SendMessage (data.name, "You don't have an account yet!")
+					casino.messaging:Send (data.name, "You don't have an account yet!")
 				end
 				
 			elseif key == "withdraw" then
@@ -246,37 +245,22 @@ function casino.data:OnEvent (event, data)
 					-- Make a withdrawal from the player's trust account
 					casino.bank.trustAccount [data.name]:Withdraw (tonumber (vars))
 				else
-					casino:SendMessage (data.name, "You do not have an account to withraw!")
+					casino.messaging:Send (data.name, "You do not have an account to withraw!")
 				end
 				
 			elseif key == "close" then
 				-- Close out the player's trust account
 				casino.bank:CloseAccount (data.name)
 				
+			elseif key == "version" then
+				-- Echo the casino version back to caller
+				casino.messaging:Send (data.name, string.format ("Casino v%s", casino.version))
+				
 			elseif casino.data.tables [data.name] then
 				-- If an active game is present for the player, set the request
 				casino.data.tables [data.name].request = args
 			
 			elseif key == "play" then
-				--[[casino.data.volume = casino.data.volume + 1
-				if casino.data.numPlayers < casino.data.maxPlayers and not casino:IsWaiting (data.name) then
-					if casino:IsBanned (data.name) then
-						-- Player is banned
-						casino:SendMessage (data.name, "You have been banned.  You may not play until you have been unbanned")
-					else
-						-- Create a new one
-						casino.data.tables [data.name] = casino.games:CreateGame (vars, data.name)
-					end
-				else
-					-- We're full up.
-					-- Inform the player he will be placed in a wait queue and his position withn the queue
-					local result = false
-					if not casino:IsWaiting (data.name) then
-						table.insert (casino.data.waitQueue, data.name)
-					else
-						casino:SendMessage (data.name, "You are already in the wait queue.  Please wait")
-					end
-				end]]
 				SetupGame (data.name, vars)
 				
 			elseif key == "front" and vars == "desk" then
@@ -284,18 +268,7 @@ function casino.data:OnEvent (event, data)
 				SetupGame (data.name, "front desk")
 
 			else
-				casino:SendMessage (data.name, "Command not recognized")
-			end
-		end
-	elseif event == "CHAT_MSG_SECTORD" then
-		-- this is used for determining if a player is sending money for an account
-		-- Form:  <playerName> sent you <amount> credits
-		local playerName, amount = string.match (data.msg, "(.+) sent you (%d+) credits")
-		if playerName then
-			if not casino.bank.trustAccount [playerName] then
-				casino.bank:OpenAccount (playerName, tonumber (amount), true)
-			else
-				casino.bank.trustAccount [playerName]:Deposit (tonumber (amount))
+				casino.messaging:Send (data.name, "Command not recognized")
 			end
 		end
 	end
@@ -314,7 +287,7 @@ function casino.data.com:OnEvent (event, data)
 		local playerName = GetPlayerName (id)
 		if totalAds > 0 and not casino.data.playerContactList [playerName] then
 			casino.data.playerContactList [playerName] = {contacted = 1}
-			casino:SendMessage (playerName, casino.data.announcements [math.random (1, totalAds)])
+			casino.messaging:Send (playerName, casino.data.announcements [math.random (1, totalAds)])
 		end
 	end
 end
@@ -325,7 +298,7 @@ function casino.data.debug:OnEvent (event, data)
 	if event == "CHAT_MSG_GROUP" then
 		event = "CHAT_MSG_PRIVATE"
 	end
-	Timer ():SetTimeout (casino.data.chatDelay, function ()
+	Timer ():SetTimeout (messaging.chatDelay, function ()
 		casino.data:OnEvent (event, data)
 	end)
 end

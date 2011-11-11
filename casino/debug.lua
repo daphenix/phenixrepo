@@ -59,7 +59,7 @@ function casino:UnbanPlayer (args)
 		else
 			casino.data.bannedList [playerName] = nil
 			casino:Print (string.format ("Player %s removed from ban list", playerName))
-			casino:SendMessage (playerName, "You have been removed from the banned list.  Feel free to play")
+			casino.messaging:Send (playerName, "You have been removed from the banned list.  Feel free to play")
 		end
 	else
 		casino:Help ()

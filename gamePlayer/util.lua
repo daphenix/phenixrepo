@@ -2,28 +2,16 @@
 	Utility functions
 ]]
 
-function gamePlayer:Message (playerName, msg, isPublic)
-	local type = "CHANNEL"
-	if not isPublic then type = "PRIVATE" end
-	if gamePlayer.data.isDebug then type = "GROUP" end
-	local message = {
-		player = playerName,
-		msg = msg,
-		type = type,
-		Send = function ()
-			SendChat (msg, type, playerName)
-		end
-	}
-	
-	return message
-end
-
 function gamePlayer:SendCasinoMessage (msg)
-	gamePlayer:SendMessage (gamePlayer.data.casinoName, "!casino " .. msg)
+	if gamePlayer.data.isDebug then
+		gamePlayer.messaging:Send (gamePlayer.data.casinoName, "!casino " .. msg, "GROUP")
+	else
+		gamePlayer.messaging:Send (gamePlayer.data.casinoName, "!casino " .. msg, "PRIVATE")
+	end
 end
 
 function gamePlayer:SendMessage (playerName, msg)
-	gamePlayer:Message (playerName, msg):Send ()
+	gamePlayer.messaging:Send (playerName, msg, "PRIVATE")
 end
 		
 function gamePlayer:IsPlayerInSector (playerName)

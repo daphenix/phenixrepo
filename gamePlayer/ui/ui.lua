@@ -60,11 +60,12 @@ function gamePlayer.ui:CreateLauncherUI ()
 		gamePlayer.data.activeGame = game
 		if game.isCasinoGame then
 			RegisterEvent (gamePlayer.data, "CHAT_MSG_PRIVATE")
+			gamePlayer:SendCasinoMessage ("balance")
 		end
 		launcher.value = game.ui
 		gamePlayer:PlaySound (game, "start", function ()
+			game.ui.nextState = "bet"
 			game.ui:Start ()
-			if game.isCasinoGame then gamePlayer:SendCasinoMessage ("balance") end
 		end)
 	end
 	
@@ -130,12 +131,14 @@ function gamePlayer.ui:CreateLauncherUI ()
 		end
 		
 		-- Hide main dialog
+		messaging:Stop (gamePlayer)
 		HideDialog (frame)
 		frame.active = "NO"
 		gamePlayer.data.activeGame = nil
 		gamePlayer.data.isActive = false
 	end
 	
+	messaging:Start (gamePlayer)
 	launcher.value = topPage
 	ShowDialog (frame, iup.CENTER, iup.CENTER)
 	frame.active = "YES"

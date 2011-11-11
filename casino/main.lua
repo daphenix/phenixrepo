@@ -9,9 +9,12 @@
 ]]
 
 declare ("casino", {})
-casino.version = "1.2.2"
+casino.version = "1.2.3"
 dofile ("data/data.lua")
 dofile ("games/games.lua")
+if not messaging then
+	dofile ("messaging.lua")
+end
 dofile ("util.lua")
 dofile ("ui/ui.lua")
 dofile ("debug.lua")
@@ -61,15 +64,15 @@ function casino:OpenTables (args)
 		else
 			RegisterEvent (casino.data, "CHAT_MSG_PRIVATE")
 		end
-		RegisterEvent (casino.data, "CHAT_MSG_SECTORD")
+		casino.bank:Open (casino)
 		if casino.data.contactPlayers then
 			RegisterEvent (casino.data.com, "PLAYER_ENTERED_SECTOR")
 			casino.data.contactActive = true
 		end
 		casino.data.tablesOpen = true
 		if coroutine.status (casino.data.houseThread) == "suspended" then
+			messaging:Start (casino)
 			casino:RunThreads ()
-			casino:RunMessageQueue ()
 			casino:RunBackup ()
 			if casino.data.useAnnouncements then
 				casino:RunAnnouncements ()
@@ -93,14 +96,15 @@ function casino:CloseTables ()
 	-- Make announcement that the casino is closed
 	if casino.data.tablesOpen then
 		casino.data.tablesOpen = false
+		messaging:Stop (casino)
 		if not debugMode then
-			SendChat (string.format ("The %s is Closed!", casino.data.name), "CHANNEL", nil)
+			SendChat (string.format ("The %s is Closed!", casino.data.name), "CHANNEL", 100)
 		end
 		
 		if casino.data.contactActive then
 			UnregisterEvent (casino.data.com, "PLAYER_ENTERED_SECTOR")
 		end
-		UnregisterEvent (casino.data, "CHAT_MSG_SECTORD")
+		casino.bank:Close (casino)
 		if debugMode then
 			UnregisterEvent (casino.data.debug, "CHAT_MSG_GROUP")
 		else

@@ -2,6 +2,9 @@ casino.bank = {}
 casino.bank.trustAccount = {}
 casino.bank.assets = 0
 
+local users = {}
+local numUsers = 0
+
 function casino.bank:OpenAccount (playerName, amt, makeAnnouncement)
 	if amt and amt > 0 then
 		local acct = {
@@ -12,7 +15,8 @@ function casino.bank:OpenAccount (playerName, amt, makeAnnouncement)
 		}
 
 		function acct:SendMessage (msg)
-			table.insert (casino.data.messageQueue, casino:Message (acct.player, msg))
+			--table.insert (messaging.queue, messaging:Message (acct.player, msg))
+			casino.messaging:Send (acct.player, msg)
 		end
 		
 		function acct:IsPlayerInSector ()
@@ -127,7 +131,7 @@ function casino.bank:CloseAccount (playerName, isAdmin)
 			-- Send remaining money in trust account to player if in sector, clear trust account
 			GiveMoney (playerName, casino.bank.trustAccount [playerName].balance)
 			casino.bank.trustAccount [playerName] = nil
-			casino:SendMessage (playerName, "Your casino account has been closed")
+			casino.messaging:Send (playerName, "Your casino account has been closed")
 		elseif isAdmin then
 			local s = string.format ("%s not in sector", playerName)
 			casino:Log (s)
@@ -137,6 +141,42 @@ function casino.bank:CloseAccount (playerName, isAdmin)
 			end)
 		end
 	elseif not isAdmin then
-		casino:SendMessage (playerName, "You must first create an account in order to close")
+		casino.messaging:Send (playerName, "You must first create an account in order to close")
+	end
+end
+
+function casino.bank:Open (p)
+	if not users [p] then
+	    users [p] = "YES"
+	    numUsers = numUsers + 1
+		if numUsers == 1 then
+			RegisterEvent (casino.bank, "CHAT_MSG_SECTORD")
+		end
+	end
+end
+
+function casino.bank:Close (p)
+    if users [p] then
+        users [p] = nil
+        numUsers = numUsers - 1
+		if numUsers == 0 then
+			UnregisterEvent (casino.bank, "CHAT_MSG_SECTORD")
+		end
+    end
+end
+
+function casino.bank:OnEvent (event, data)
+	if event == "CHAT_MSG_SECTORD" then
+		-- this is used for determining if a player is sending money for an account
+		-- Form:  <playerName> sent you <amount> credits
+		local playerName, amount = string.match (data.msg, "(.+) sent you (%d+) credits")
+		if playerName then
+			if not casino.bank.trustAccount [playerName] then
+				casino.bank:OpenAccount (playerName, tonumber (amount), true)
+			else
+				casino.bank.trustAccount [playerName]:Deposit (tonumber (amount))
+			end
+			ProcessEvent ("BANK_DEPOSIT", {name=playerName, amount=amount})
+		end
 	end
 end
