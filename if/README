@@ -1,0 +1,3 @@
+Put some sort of license here
+
+you can use the files in this repository (or your modified versions) in your running client by adding a line like "if=yourdir/yourif.lua" to the Vendetta section of your config.ini - or you can just use it to figure out how to write more powerful plugins
